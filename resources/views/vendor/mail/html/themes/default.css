@@ -1,0 +1,307 @@
+/* Base */
+
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    position: relative;
+}
+
+body {
+    -webkit-text-size-adjust: none;
+    background-color: #ffffff;
+    color: #718096;
+    height: 100%;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    width: 100% !important ;
+}
+
+p,
+ul,
+ol,
+blockquote {
+    line-height: 1.6; /* زيادة قليلة لتحسين القراءة */
+    text-align: right; /* تعديل إضافي: المحاذاة لليمين */
+}
+
+a {
+    /* اللون الأساسي الجديد للروابط */
+    color: #007bff !important;
+}
+
+a img {
+    border: none;
+}
+
+/* Typography */
+
+h1 {
+    color: #3d4852;
+    font-size: 20px; /* زيادة حجم العنوان الرئيسي */
+    font-weight: bold !important;
+    margin-top: 0;
+    text-align: right; /* تعديل إضافي: المحاذاة لليمين */
+}
+
+h2 {
+    font-size: 18px; /* زيادة حجم العنوان الفرعي */
+    font-weight: bold;
+    margin-top: 0;
+    text-align: right; /* تعديل إضافي: المحاذاة لليمين */
+}
+
+h3 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: right; /* تعديل إضافي: المحاذاة لليمين */
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.6em; /* زيادة قليلة لتحسين القراءة */
+    margin-top: 0;
+    text-align: right; /* تعديل إضافي: المحاذاة لليمين */
+}
+
+p.sub {
+    font-size: 13px; /* زيادة حجم نص الـ subcopy قليلاً */
+}
+
+img {
+    max-width: 100%;
+}
+
+/* Layout */
+
+.wrapper {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    /* خلفية كُلية أنظف وأفتح */
+    background-color: #f7f7f7 !important;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.content {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Header */
+
+.header {
+    padding: 30px 0; /* زيادة المساحة حول اللوجو */
+    text-align: center;
+}
+
+.header a {
+    color: #3d4852 !important;
+    font-size: 19px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Logo */
+
+.logo {
+    height: auto;
+    max-height: 40px; /* تقليل حجم اللوجو قليلاً */
+    width: auto;
+}
+
+/* Body */
+
+.body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    /* خلفية الـ Body مطابقة للخلفية الكلية */
+    background-color: #f7f7f7 !important;
+    border-bottom: 1px solid #f7f7f7 !important;
+    border-top: 1px solid #f7f7f7 !important;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.inner-body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 600px; /* زيادة عرض الرسالة الداخلية */
+    background-color: #ffffff !important; /* !! إضافة !important !! */
+    border-color: #e8e5ef;
+    /* زيادة التدوير ليعطي مظهراً عصرياً */
+    border-radius: 8px !important; /* !! إضافة !important !! */
+    border-width: 1px;
+    /* تظليل أخف وأكثر احترافية */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06) !important; /* !! إضافة !important !! */
+    margin: 30px auto; /* زيادة الهامش العلوي والسفلي */
+    padding: 0;
+    width: 600px;
+}
+
+.inner-body a {
+    word-break: break-all;
+}
+
+/* Subcopy */
+
+.subcopy {
+    border-top: 1px solid #e8e5ef !important;
+    margin-top: 30px; /* زيادة المساحة */
+    padding-top: 30px;
+}
+
+.subcopy p {
+    font-size: 14px;
+}
+
+/* Footer */
+
+.footer {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 600px;
+    margin: 0 auto;
+    padding: 20px 0; /* زيادة المساحة */
+    text-align: center;
+    width: 600px;
+}
+
+.footer p {
+    color: #a0a0a0; /* لون رمادي أغمق وأوضح للـ Footer */
+    font-size: 13px;
+    text-align: center;
+}
+
+.footer a {
+    color: #a0a0a0;
+    text-decoration: underline;
+}
+
+/* Tables */
+
+.table table {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 30px auto;
+    width: 100%;
+}
+
+.table th {
+    border-bottom: 2px solid #edeff2 !important; /* خط أسفل أعرض */
+    margin: 0;
+    padding-bottom: 10px;
+}
+
+.table td {
+    color: #3d4852 !important; /* جعل لون النص في الجدول أغمق وأوضح */
+    font-size: 15px;
+    line-height: 18px;
+    margin: 0;
+    padding: 12px 0; /* زيادة المسافة */
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 32px;
+    text-align: right !important; /* !! تعديل إضافي: المحاذاة لليمين داخل الخلية !! */
+}
+
+/* Buttons */
+
+.action {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 30px auto;
+    padding: 0;
+    text-align: right; /* !! تعديل إضافي: محاذاة الأزرار لليمين !! */
+    width: 100%;
+    float: unset;
+}
+
+.button {
+    -webkit-text-size-adjust: none;
+    border-radius: 6px !important; /* !! إضافة !important !! */
+    color: #fff !important;
+    display: inline-block;
+    overflow: hidden;
+    text-decoration: none;
+    font-weight: 600; /* جعل الخط أثقل */
+}
+
+.button-blue,
+.button-primary {
+    /* اللون الأساسي الجديد */
+    background-color: #007bff !important; /* !! إضافة !important !! */
+    border-bottom: 8px solid #007bff !important; /* !! إضافة !important !! */
+    border-left: 18px solid #007bff !important; /* !! إضافة !important !! */
+    border-right: 18px solid #007bff !important; /* !! إضافة !important !! */
+    border-top: 8px solid #007bff !important; /* !! إضافة !important !! */
+}
+
+.button-green,
+.button-success {
+    /* لون النجاح */
+    background-color: #28a745 !important;
+    border-bottom: 8px solid #28a745 !important;
+    border-left: 18px solid #28a745 !important;
+    border-right: 18px solid #28a745 !important;
+    border-top: 8px solid #28a745 !important;
+}
+
+.button-red,
+.button-error {
+    /* لون الخطأ */
+    background-color: #dc3545 !important;
+    border-bottom: 8px solid #dc3545 !important;
+    border-left: 18px solid #dc3545 !important;
+    border-right: 18px solid #dc3545 !important;
+    border-top: 8px solid #dc3545 !important;
+}
+
+/* Panels */
+
+.panel {
+    /* لون الشريط الجانبي للـ Panel */
+    border-left: #007bff solid 4px !important;
+    margin: 21px 0 !important;
+}
+
+.panel-content {
+    background-color: #f7f7f7 !important; /* خلفية الـ Panel مطابقة للخلفية الكلية */
+    color: #718096 !important;
+    padding: 16px;
+    border-radius: 4px; /* تدوير بسيط للـ Panel */
+}
+
+.panel-content p {
+    color: #718096 !important;
+}
+
+.panel-item {
+    padding: 0;
+}
+
+.panel-item p:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Utilities */
+
+.break-all {
+    word-break: break-all;
+}

@@ -1,0 +1,1 @@
+->unique(table:'brands', column: 'name->en',ignoreRecord: true)
