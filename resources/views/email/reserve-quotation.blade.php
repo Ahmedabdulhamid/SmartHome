@@ -69,7 +69,7 @@ use App\Models\Setting;
     <div class="container">
          @if ($setting && $setting->site_logo)
             <div class="header-logo">
-                <img src="{{ url('public/storage/'.$setting->site_logo) }}" alt="{{ __('email.company_name') }}" title="{{ __('email.company_name') }}">
+                <img src="{{ url('storage/'.$setting->site_logo) }}" alt="{{ __('email.company_name') }}" title="{{ __('email.company_name') }}">
             </div>
         @endif
         <h1>{{ __('web.reservation_title') }}</h1>

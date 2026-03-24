@@ -163,7 +163,16 @@ return [
         "items.*.quantity"=>"Item Quantity",
         "items.*.product_variant_id"=>"Variant Item",
         "rfq_expected_price"=>"RFQ Expected Price",
-        "password"=>"password"
+        "password"=>"password",
+        "govoernorateId"=>"Governorate",
+        "f_name"=>"First Name",
+        "l_name"=>"Last Name",
+        "cityId"=>"City",
+        "phone"=>"Phone Number",
+        "zip_code"=>"Zip Code",
+        "shipping_type"=>"Shipping Type",
+        "paym_method"=>"Payment Method"
+
 
 
 

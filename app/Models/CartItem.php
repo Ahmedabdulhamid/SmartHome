@@ -13,5 +13,6 @@ class CartItem extends Pivot
         'product_id',
         'product_variant_id',
         'quantity',
+        'price'
     ];
 }

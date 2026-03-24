@@ -29,7 +29,7 @@
 
                         @if ($service->image)
                             <div class="service-image mb-4 shadow-sm rounded-4 overflow-hidden">
-                                <img src="{{ url('public/storage/' . $service->image) }}"
+                                <img src="{{ url('storage/' . $service->image) }}"
                                     alt="{{ $service->getTranslation('title', app()->getLocale()) }}"
                                     class="img-fluid w-100 object-fit-cover" style="max-height: 400px;">
                             </div>
@@ -110,7 +110,7 @@
 
                                     @if ($service->icon)
                                         <div class="icon-summary mt-3">
-                                            <img src="{{ url('public/storage/' . $service->icon) }}" alt="Service Icon"
+                                            <img src="{{ url('storage/' . $service->icon) }}" alt="Service Icon"
                                                 style="width: 60px; height: 60px; object-fit: contain;">
                                         </div>
                                     @endif

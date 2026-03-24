@@ -8,15 +8,17 @@ use App\Models\WhatsappSetting;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class WhatsappWebHookController extends Controller
 {
- public function handle(Request $request)
+    public function handle(Request $request)
     {
-       $whatsappSettings = WhatsappSetting::first();
+        $whatsappSettings = WhatsappSetting::first();
 
 
-        // التحقق من توافر مفتاح التحقق
+
         if (empty($whatsappSettings->meta_verify_token)) {
             logger()->error('Meta verification token is missing in settings table.');
             return response('Configuration Error: Missing Verify Token', 500);
@@ -54,7 +56,7 @@ class WhatsappWebHookController extends Controller
         ]);
         return response('Forbidden', 403);
     }
-     protected function handleIncomingMessage(Request $request, $settings = [])
+    protected function handleIncomingMessage(Request $request, $settings = [])
     {
         $data = $request->all();
 
@@ -87,7 +89,7 @@ class WhatsappWebHookController extends Controller
 
         return response()->json(['status' => 'Success'], 200);
     }
-     protected function handleMessageStatus($statusUpdate)
+    protected function handleMessageStatus($statusUpdate)
     {
         $messageId = $statusUpdate['id'];
         $status = $statusUpdate['status']; // 'sent', 'delivered', 'read'
@@ -108,14 +110,13 @@ class WhatsappWebHookController extends Controller
             logger()->info("Status updated for message ID: {$messageId} to {$status}");
         }
     }
-     protected function handleIncomingWhatsAppMessage($message, $value, $settings)
+    protected function handleIncomingWhatsAppMessage($message, $value, $settings)
     {
         $senderNumber = $message['from'];
         $wamid = $message['id'];
-
         $externalNumber = 'whatsapp:' . $senderNumber;
 
-        // 2. البحث عن المحادثة أو إنشائها
+        // 1. البحث عن المحادثة أو إنشائها
         $conversation = Conversation::firstOrCreate(
             ['external_number' => $externalNumber],
             [
@@ -125,42 +126,106 @@ class WhatsappWebHookController extends Controller
             ]
         );
 
-        // 3. تحليل المحتوى
+        // 2. تحليل المحتوى
         $messageBody = '';
-        $messageType = $message['type'];
+        // ... داخل الدالة handleIncomingWhatsAppMessage
+
+        $messageType = $message['type'] ?? 'unknown';
         $attachmentUrl = null;
 
         if ($messageType === 'text') {
-            $messageBody = $message['text']['body'];
-        } elseif (in_array($messageType, ['image', 'video', 'document'])) {
-            $messageBody = "Received a {$messageType} attachment.";
-            // ... منطق جلب الميديا ...
+            $messageBody = $message['text']['body'] ?? '';
         } else {
-            $messageBody = "Received unsupported message type: {$messageType}";
+            // استخراج الـ ID بطريقة آمنة
+            $mediaId = $message[$messageType]['id'] ?? null;
+
+            if ($mediaId) {
+                $attachmentUrl = $this->downloadWhatsappMedia($mediaId, $settings);
+                $messageBody = "Sent a " . $messageType;
+                logger()->info("Media ID is".$mediaId);
+            } else {
+                // لو لسه بيطلع null، سجل النوع عشان نعرف المشكلة فين
+                logger()->warning("Media ID not found for type: {$messageType}", ['message' => $message]);
+                $messageBody = "Received " . $messageType . " (Media ID missing)";
+            }
         }
 
-        // 4. حفظ الرسالة في قاعدة البيانات
-        $newMessage = ChatMessage::create([ // 💡 تخزين الرسالة في متغير $newMessage
+        // 3. حفظ الرسالة
+        $newMessage = ChatMessage::create([
             'conversation_id' => $conversation->id,
+            'external_number' => $externalNumber,
             'body' => $messageBody,
             'direction' => 'inbound',
-            'admin_id' => null,
             'status' => 'delivered',
             'whatsapp_message_sid' => $wamid,
-            'type' => $messageType,
+            'type' => $messageType, // الآن يقبل أي نص لأننا حولناه لـ string
             'attachment_url' => $attachmentUrl,
             'seen_by_user' => false,
         ]);
 
-        // 5. 🚀 إطلاق حدث Pusher (يتم فوراً بعد حفظ الرسالة)
-        // هذا السطر يبث الرسالة الجديدة للواجهة الأمامية
-        //event(new NewIncomingWhatsAppMessage($newMessage));
-
-        // 6. تحديث حالة المحادثة
         $conversation->increment('unread_count');
         $conversation->last_message_at = Carbon::now();
         $conversation->save();
 
-        logger()->info("New inbound message received from: {$senderNumber}");
+        logger()->info("New message saved: {$messageType} from {$senderNumber}");
     }
+    protected function downloadWhatsappMedia($mediaId, $settings)
+{
+    try {
+        $accessToken = $settings->meta_access_token;
+
+        // الخطوة 1: الحصول على رابط الملف من Meta
+        $response = Http::withToken($accessToken)
+            ->withUserAgent('Mozilla/5.0') // إضافة User-Agent لتجنب الحظر
+            ->get("https://graph.facebook.com/v21.0/{$mediaId}"); // جرب تحديث الإصدار لـ v21.0
+
+        if (!$response->successful()) {
+            logger()->error("Meta Step 1 Fail: " . $response->body());
+            return null;
+        }
+
+        $mediaUrl = $response->json()['url'] ?? null;
+        if (!$mediaUrl) return null;
+
+        // الخطوة 2: تحميل الملف الفعلي باستخدام الرابط المستلم
+        // ملاحظة: الرابط المستلم من Meta أحياناً يتطلب التوكن وأحياناً لا، الأفضل تمريره
+        $fileResponse = Http::withToken($accessToken)
+            ->withUserAgent('Mozilla/5.0')
+            ->get($mediaUrl);
+
+        if (!$fileResponse->successful()) {
+            logger()->error("Meta Step 2 (Download) Fail: " . $fileResponse->status());
+            return null;
+        }
+
+        // الخطوة 3: معالجة اسم الملف والامتداد
+        $fileContents = $fileResponse->body();
+        $mimeType = $fileResponse->header('Content-Type');
+
+        // تحسين استخراج الامتداد
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'audio/ogg'  => 'ogg',
+            'audio/mpeg' => 'mp3',
+            'audio/amr'  => 'amr',
+            'video/mp4'  => 'mp4',
+            'application/pdf' => 'pdf'
+        ];
+        $extension = $extensions[$mimeType] ?? 'bin';
+
+        $fileName = 'wa_' . $mediaId . '_' . time() . '.' . $extension;
+        $filePath = 'uploads/whatsapp/' . $fileName;
+
+        // التأكد من وجود المجلد والحفظ
+        Storage::disk('public')->put($filePath, $fileContents);
+
+        return asset('storage/' . $filePath);
+
+    } catch (\Exception $e) {
+        logger()->error("Exception in download: " . $e->getMessage());
+        return null;
+    }
+}
+
 }

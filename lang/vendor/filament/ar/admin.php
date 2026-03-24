@@ -356,7 +356,7 @@ return [
     // الأسماء العامة للمورد
     'plural' => 'الخدمات',
     'single' => 'خدمة',
-    "features"=>"المميزات",
+    "features" => "المميزات",
 
 
     // حقول المحتوى الأساسي
@@ -411,31 +411,31 @@ return [
 
 
 
-'features_navigation_label' => 'إدارة الميزات',
-'feature_info_section' => 'معلومات الميزة',
+    'features_navigation_label' => 'إدارة الميزات',
+    'feature_info_section' => 'معلومات الميزة',
 
-'english_tab_title' => 'الإنجليزية',
+    'english_tab_title' => 'الإنجليزية',
 
-'feature_name_ar' => 'اسم الميزة (العربية)',
-'feature_name_en' => 'اسم الميزة (الإنجليزية)',
-'feature_description_ar' => 'وصف الميزة (العربية)',
-'feature_description_en' => 'وصف الميزة (الإنجليزية)',
+    'feature_name_ar' => 'اسم الميزة (العربية)',
+    'feature_name_en' => 'اسم الميزة (الإنجليزية)',
+    'feature_description_ar' => 'وصف الميزة (العربية)',
+    'feature_description_en' => 'وصف الميزة (الإنجليزية)',
 
-'feature_icon' => 'أيقونة الميزة',
-'feature_icon_helper' => 'قم بتحميل أيقونة بصيغة SVG أو صورة صغيرة الحجم',
+    'feature_icon' => 'أيقونة الميزة',
+    'feature_icon_helper' => 'قم بتحميل أيقونة بصيغة SVG أو صورة صغيرة الحجم',
 
-'is_active_label' => 'مفعلة',
-'is_active_helper' => 'يحدد ما إذا كانت الميزة متاحة للاستخدام في الخدمات',
+    'is_active_label' => 'مفعلة',
+    'is_active_helper' => 'يحدد ما إذا كانت الميزة متاحة للاستخدام في الخدمات',
 
-'feature_name' => 'اسم الميزة',
-'feature_description' => 'الوصف',
-
-
-'no_features_yet' => 'لا توجد ميزات بعد.',
-'add_new_feature_btn' => 'يمكنك إضافة ميزة جديدة بالضغط على الزر "ميزة جديدة".',
+    'feature_name' => 'اسم الميزة',
+    'feature_description' => 'الوصف',
 
 
-'blog' => 'مقالة',
+    'no_features_yet' => 'لا توجد ميزات بعد.',
+    'add_new_feature_btn' => 'يمكنك إضافة ميزة جديدة بالضغط على الزر "ميزة جديدة".',
+
+
+    'blog' => 'مقالة',
 
     'blog_content' => 'محتوى المقالة',
     'main_content' => 'المحتوى الأساسي',
@@ -493,13 +493,13 @@ return [
 
     'edit' => 'تعديل',
     'delete' => 'حذف',
-    "blogs_management"=>"أدارة التقارير",
-     'yes' => 'نعم',
+    "blogs_management" => "أدارة التقارير",
+    'yes' => 'نعم',
     'no' => 'لا',
 
     'excerpt' => 'المقتطفات',
     'watch_video' => 'مشاهدة الفيديو',
-'media_info' => 'معلومات الوسائط',
+    'media_info' => 'معلومات الوسائط',
 
     'question_ar' => 'السؤال (عربي)',
     'answer_ar' => 'الإجابة (عربي)',
@@ -521,6 +521,72 @@ return [
     'products_description' => 'إجمالي عدد المنتجات المتاحة حالياً في المتجر',
 
     'users_description' => 'عدد المستخدمين المسجلين في المنصة',
+    "goveronrate" => "المحافظة",
+    "governorates" => "المحافظات",
+    "shipping_zones" => "ادارة اماكن التوصيل",
+    "cities" => "المدن",
+    "city" => "المدينة",
+
+    "shipping_prices" => "إدارة أسعار الشحن",
+    "shipping_price" => "سعر الشحن",
+    "shipping_price_info" => "معلومات سعر الشحن",
+
+    "shipping_zone" => "منطقة الشحن",
+    "shipping_zone_info" => "معلومات منطقة الشحن",
+
+    "shipping_info" => "معلومات الشحن",
+
+    "select_city" => "اختر المدينة",
+
+    "shipping_type" => "نوع الشحن",
+    "standard" => "عادي",
+    "express" => "سريع",
+
+    "estimated_days" => "عدد أيام التوصيل",
+
+    "return_fee" => "رسوم الإرجاع",
+
+    "weight_range" => "نطاق الوزن (كجم)",
+
+    "min_weight" => "الحد الأدنى للوزن",
+    "max_weight" => "الحد الأقصى للوزن",
+
+
+    "zip_code" => "الرمز البريدي",
+    "customer_info" => "معلومات العميل",
+    "basic_customer_details" => "تفاصيل العميل الأساسية",
+    "f_name" => "الاسم الأول",
+    "l_name" => "اسم العائلة",
+    "shipping_information" => "معلومات الشحن",
+    "shipping_info_region" => "عنوان الشحن والمنطقة",
+    "address" => "العنوان",
+    "payment_details" => "تفاصيل الدفع",
+    "order_amount_payment_status" => "قيمة الطلب وحالة الدفع",
+    "total_amount" => "إجمالي المبلغ",
+    "order_status" => "حالة الطلب",
+    "order_items" => "عناصر الطلب",
+    "products_included" => "المنتجات المضمنة في هذا الطلب",
+    "unit_price" => "سعر الوحدة",
+    "order" => "طلب",
+    "governorate" => "المحافظة",
+    "orders" => "الطلبات",
+    'pending'   => 'قيد الانتظار',
+    'confirmed' => 'تم التأكيد',
+    'shipped'   => 'تم الشحن',
+    'delivered' => 'تم التوصيل',
+    'cancelled' => 'تم الإلغاء',
+    "all_orders" => "جميع الطلبات",
+    "today" => "طلبات اليوم",
+    "this_week" => "طلبات هذا الأسبوع",
+    "this_month" => "طلبات هذا الشهر",
+    "sale"=>"مبيعة",
+    'sales'=>"مبيعات",
+    "user_name"=>"اسم المستخدم",
+    "user_details"=>"تفاصيل المستخدم",
+    "blilling_details"=>"معلومات المالية",
+    "sales_items"=>"عناصر البيع",
+    "sales_reports"=>"تقارير المبيعات",
+    "reports"=>"التقارير"
 
 
 

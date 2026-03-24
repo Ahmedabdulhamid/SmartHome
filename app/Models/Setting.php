@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Translatable\HasTranslations;
 class Setting extends Model
 {
@@ -30,4 +31,24 @@ class Setting extends Model
         'twitter_card_description' => 'array',
         'site_address'=>"site_adderss"
     ];
+    protected static function booted()
+    {
+        static::updated(function ($setting) {
+            $original = $setting->getOriginal();
+
+            // site_logo
+            if (isset($original['site_logo']) && $original['site_logo'] !== $setting->site_logo) {
+                if ($original['site_logo'] && Storage::disk('public')->exists($original['site_logo'])) {
+                    Storage::disk('public')->delete($original['site_logo']);
+                }
+            }
+
+            // favicon
+            if (isset($original['favicon']) && $original['favicon'] !== $setting->favicon) {
+                if ($original['favicon'] && Storage::disk('public')->exists($original['favicon'])) {
+                    Storage::disk('public')->delete($original['favicon']);
+                }
+            }
+        });
+    }
 }

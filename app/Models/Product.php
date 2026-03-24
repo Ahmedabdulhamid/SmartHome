@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -38,11 +39,11 @@ class Product extends Model
     protected $casts = [
         'name' => 'array',
         'description' => 'array',
-        'highlights'=>"array",
-        'drawbacks'=>"array"
+        'highlights' => "array",
+        'drawbacks' => "array"
 
     ];
-    public $translatable = ['name', 'description','highlights','drawbacks'];
+    public $translatable = ['name', 'description', 'highlights', 'drawbacks'];
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -93,7 +94,7 @@ class Product extends Model
         return $this->hasMany(DataSheet::class);
     }
 
-     protected function actualPrice(): Attribute
+    protected function actualPrice(): Attribute
     {
         return Attribute::make(
             get: function () {
@@ -123,12 +124,78 @@ class Product extends Model
         );
     }
     public function stockAdjustments()
-{
-    return $this->morphMany(StockAdjustmentTransaction::class, 'adjustable');
-}
-public function carts(){
-    return $this->belongsToMany(Cart::class,'cart_item')
-    ->using(CartItem::class)
-    ->withPivot('quantity', 'product_variant_id');
-}
+    {
+        return $this->morphMany(StockAdjustmentTransaction::class, 'adjustable');
+    }
+    public function carts()
+    {
+        return $this->belongsToMany(Cart::class, 'cart_item')
+            ->using(CartItem::class)
+            ->withPivot('quantity', 'product_variant_id', 'price');
+    }
+    protected static function booted()
+    {
+        static::deleting(function ($product) {
+            // حذف صور المنتج
+            if ($product->images) {
+                foreach ($product->images as $image) {
+                    if ($image->path && Storage::disk('public')->exists($image->path)) {
+                        Storage::disk('public')->delete($image->path);
+                    }
+                }
+            }
+
+            // حذف ملفات الـ Data Sheets
+            if ($product->dataSheets) {
+                foreach ($product->dataSheets as $dataSheet) {
+                    if ($dataSheet->file_path && Storage::disk('public')->exists($dataSheet->file_path)) {
+                        Storage::disk('public')->delete($dataSheet->file_path);
+                    }
+                }
+            }
+            if( $product->variants ){
+                foreach( $product->variants as $variant ){
+                    foreach( $variant->variantImages as $vImage ){
+                        if ( $vImage->path && Storage::disk('public')->exists($vImage->path) ) {
+                            Storage::disk('public')->delete( $vImage->path );
+                        }
+                    }
+                }
+            }
+        });
+        static::updating(function ($product) {
+            // جلب النسخة القديمة من الـ model
+            $original = $product->getOriginal();
+
+            // حذف صور تم تغيير مسارها
+            if ($product->images) {
+                foreach ($product->images as $image) {
+                    $oldPath = $original['images'] ?? null;
+                    if ($oldPath && $oldPath !== $image->path && Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
+            }
+            if( $product->variants ){
+                foreach( $product->variants as $variant ){
+                    foreach( $variant->variantImages as $vImage ){
+                        $oldPath = $original['variantImages'] ?? null;
+                        if ($oldPath && $oldPath !== $vImage->path && Storage::disk('public')->exists($oldPath)) {
+                            Storage::disk('public')->delete($oldPath);
+                        }
+                    }
+                }
+            }
+
+            // حذف ملفات الـ Data Sheets القديمة
+            if ($product->dataSheets) {
+                foreach ($product->dataSheets as $dataSheet) {
+                    $oldFilePath = $original['dataSheets'] ?? null;
+                    if ($oldFilePath && $oldFilePath !== $dataSheet->file_path && Storage::disk('public')->exists($oldFilePath)) {
+                        Storage::disk('public')->delete($oldFilePath);
+                    }
+                }
+            }
+        });
+    }
 }

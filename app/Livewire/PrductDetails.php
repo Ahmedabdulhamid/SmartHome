@@ -79,6 +79,7 @@ class PrductDetails extends Component
     }
     public function incrementQuantity()
     {
+
         $this->quantity++;
     }
     public function decrementQuantity()
@@ -87,84 +88,127 @@ class PrductDetails extends Component
             $this->quantity--;
         }
     }
-   public function addToCart($id)
-{
-    // 1️⃣ الحصول على المنتج
-    $product = Product::with(['images', 'currency', 'variants'])->find($id);
+  public function addToCart($id)
+    {
+        // 1️⃣ الحصول على المنتج
+        $product = Product::with(['images', 'currency', 'variants'])->find($id);
 
-    if (!$product) {
-        return $this->dispatch('error_cart_not_found', message: __('web.error_cart_not_found'));
-    }
+        if (!$product) {
+            return $this->dispatch('error_cart_not_found', message: __('web.error_cart_not_found'));
+        }
 
-    // 2️⃣ التحقق من الكمية المطلوبة
-    if ($this->quantity < 1) {
-        return $this->dispatch('error_cart_quantity', message: __('web.error_cart_invalid_quantity'));
-    }
+        // 2️⃣ التحقق من الكمية المطلوبة
+        if ($this->quantity < 1) {
+            return $this->dispatch('error_cart_quantity', message: __('web.error_cart_invalid_quantity'));
+        }
 
-    // 3️⃣ إنشاء أو جلب السلة
-    $cart = Cart::firstOrCreate([
-        'user_id' => auth()->guard('web')->user()->id ?? null,
-        'session_id' => session()->getId(),
-    ]);
+        // 3️⃣ إنشاء أو جلب السلة
+        $cart = Cart::firstOrCreate([
+            'user_id' => auth()->guard('web')->user()->id ?? null,
+            'session_id' => auth()->guard('web')->user()?null:session()->getId(),
+        ]);
 
-    // 4️⃣ المنتج بدون variants
-    if (!$product->has_variants) {
-        if ($this->quantity > $product->quantity) {
+
+        // 🚨 التعديل الرئيسي: التحقق من عملة السلة 🚨
+        // 4️⃣ جلب عملة أول منتج في السلة (إن وجدت)
+        $firstCartItem = $cart->items()->with('currency')->first();
+
+        if ($firstCartItem) {
+            // العملة الموجودة في السلة حالياً
+            $currentCartCurrencyCode = $firstCartItem->currency->code;
+
+            // عملة المنتج الذي نحاول إضافته
+            $newProductCurrencyCode = $product->currency->code;
+
+            if ($currentCartCurrencyCode !== $newProductCurrencyCode) {
+                // العملات مختلفة، منع الإضافة
+                return $this->dispatch('error_cart_currency_mismatch', [
+                    'message' => __('web.error_cart_currency_mismatch', [
+                        'current' => $currentCartCurrencyCode,
+                        'new' => $newProductCurrencyCode
+                    ]),
+                ]);
+            }
+        }
+        // ⚠️ ملاحظة: إذا كانت السلة فارغة، فسيتم قبول المنتج الجديد بعمله.
+
+        // 5️⃣ المنتج بدون variants (المنطق الأصلي)
+        if (!$product->has_variants) {
+            if ($this->quantity > $product->quantity) {
+                return $this->dispatch('error_cart_quantity', message: __('web.error_cart_quantity'));
+            }
+
+            $existingItem = $cart->items()->where('product_id', $product->id)
+                ->wherePivotNull('product_variant_id')
+                ->first();
+
+            $newQuantity = $existingItem ? $existingItem->pivot->quantity + $this->quantity : $this->quantity;
+            if ($product->has_discount) {
+                $totalPrice = ($product->base_price - ($product->base_price * ($product->discount_percentage / 100))) * $newQuantity;
+            } else {
+                $totalPrice = $product->base_price * $newQuantity;
+            }
+
+            $data = [
+                'quantity' => $newQuantity,
+                'product_variant_id' => null,
+                'price' => $totalPrice,
+            ];
+
+            if ($existingItem) {
+                $cart->items()->updateExistingPivot($product->id, $data);
+            } else {
+                $cart->items()->attach($product->id, $data);
+            }
+
+            $this->cartCount = $cart->items()->count(); // تحديث عداد السلة
+            $this->dispatch('cart_count_updated', count: $this->cartCount); // إرسال التحديث
+            return $this->dispatch('cart_updated', message: __('web.success_add_cart'));
+        }
+
+        // 6️⃣ المنتج له variants (تم تصحيح منطق السعر هنا)
+        if (!$this->selectedVariant) {
+            // المستخدم لم يختر variant بعد
+            return $this->dispatch('error_cart_variants', message: __('web.error_cart_variants'));
+        }
+
+        // التحقق من كمية المتغير المتاحة
+        if ($this->quantity > $this->selectedVariant->quantity) {
             return $this->dispatch('error_cart_quantity', message: __('web.error_cart_quantity'));
         }
 
-        $existingItem = $cart->items()->where('product_id', $product->id)
-            ->wherePivotNull('product_variant_id')
-            ->first();
-
-        if ($existingItem) {
-            $cart->items()->updateExistingPivot($product->id, [
-                'quantity' => $existingItem->pivot->quantity + $this->quantity,
-                'product_variant_id' => null,
-            ]);
+        // سعر المتغير (يجب التأكد أن هذا الحقل موجود على موديل المتغير)
+        if ($product->has_discount) {
+            $variantPrice = ($this->selectedVariant->price - ($this->selectedVariant->price * ($this->selectedVariant->product->discount_percentage / 100)));
         } else {
-            $cart->items()->attach($product->id, [
-                'quantity' => $this->quantity,
-                'product_variant_id' => null,
-            ]);
+            $variantPrice = $this->selectedVariant->price;
         }
 
+        // التحقق من وجود نفس المتغير في السلة
+        $existingItem = $cart->items()
+            ->where('product_id', $product->id)
+            ->wherePivot('product_variant_id', $this->selectedVariant->id)
+            ->first();
+
+        $newQuantity = $existingItem ? $existingItem->pivot->quantity + $this->quantity : $this->quantity;
+        $totalPrice = $variantPrice * $newQuantity;
+
+        $data = [
+            'quantity' => $newQuantity,
+            'product_variant_id' => $this->selectedVariant->id,
+            'price' => $totalPrice, // 👈 تم إضافة السعر هنا!
+        ];
+
+        if ($existingItem) {
+            $cart->items()->updateExistingPivot($product->id, $data);
+        } else {
+            $cart->items()->attach($product->id, $data);
+        }
+
+        $this->cartCount = $cart->items()->count();
+        $this->dispatch('cart_count_updated', count: $this->cartCount);
         return $this->dispatch('cart_updated', message: __('web.success_add_cart'));
     }
-
-    // 5️⃣ المنتج له variants
-    if (!$this->selectedVariant) {
-        // المستخدم لم يختر variant بعد
-        return $this->dispatch('error_cart_variants', message: __('web.error_cart_variants'));
-    }
-
-    // التحقق من كمية المتغير المتاحة
-    if ($this->quantity > $this->selectedVariant->quantity) {
-        return $this->dispatch('error_cart_quantity', message: __('web.error_cart_quantity'));
-    }
-
-    // التحقق من وجود نفس المتغير في السلة
-    $existingItem = $cart->items()
-        ->where('product_id', $product->id)
-        ->wherePivot('product_variant_id', $this->selectedVariant->id)
-        ->first();
-
-    if ($existingItem) {
-        $cart->items()->updateExistingPivot($product->id, [
-            'quantity' => $existingItem->pivot->quantity + $this->quantity,
-            'product_variant_id' => $this->selectedVariant->id,
-        ]);
-    } else {
-        $cart->items()->attach($product->id, [
-            'quantity' => $this->quantity,
-            'product_variant_id' => $this->selectedVariant->id,
-        ]);
-    }
-
-    $this->cartCount = $cart->items()->count();
-    $this->dispatch('cart_count_updated', count: $this->cartCount);
-    return $this->dispatch('cart_updated', message: __('web.success_add_cart'));
-}
 
     public function selectVariant($variantId)
     {

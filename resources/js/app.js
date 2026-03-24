@@ -1,14 +1,13 @@
-import './bootstrap';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
-import Alpine from 'alpinejs';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/thumbs';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import SwiperCore, { Navigation, Thumbs } from 'swiper';
+window.Pusher = Pusher;
 
-SwiperCore.use([Navigation, Thumbs]);
+window.Echo = new Echo({
+    broadcaster: "pusher",
+    key: '1472d2cbdd35f4be5341',
+    cluster: 'mt1',
+    forceTLS: false,
 
-window.Alpine = Alpine;
+});
 
-Alpine.start();

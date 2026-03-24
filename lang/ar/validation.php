@@ -155,6 +155,7 @@ return [
     'uppercase'              => 'يجب أن يحتوي الحقل :attribute على حروف كبيرة.',
     'url'                    => 'صيغة رابط حقل :attribute غير صحيحة.',
     'uuid'                   => 'حقل :attribute يجب أن يكون بصيغة UUID سليمة.',
+
     'attributes'             => [
         'address'                  => 'العنوان',
         'age'                      => 'العمر',
@@ -188,8 +189,19 @@ return [
         "items.*.product_id" => "العنصر",
         "items.*.quantity" => "كمية العنصر",
         "items.*.product_variant_id" => "المنتج المتغير",
-        "rfq_expected_price"=>"السعر المتوقع للطلب",
-         "password"=>"كلمة المرور"
+        "rfq_expected_price" => "السعر المتوقع للطلب",
+        "password" => "كلمة المرور",
+        "govoernorateId" => "المحافظة",
+        'f_name'        => 'الاسم الأول',
+        'l_name'        => 'اسم العائلة',
+        'cityId'        => 'المدينة',
+        'phone'         => 'رقم الهاتف',
+        'zip_code'      => 'الرمز البريدي',
+        'shipping_type' => 'نوع الشحن',
+        'paym_method'   => 'طريقة الدفع',
+
+
+
 
     ],
 

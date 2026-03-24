@@ -25,7 +25,7 @@
                         {{-- صورة الخدمة الرئيسية (خلفية علوية) --}}
                         <div class="card-image-wrapper overflow-hidden" style="height: 200px;">
                             @if ($service->image)
-                                <img src="{{ url('public/storage/' . $service->image) }}" class="card-img-top w-100 h-100 object-fit-cover" alt="{{ $service->getTranslation('title', app()->getLocale()) }}"
+                                <img src="{{ url('storage/' . $service->image) }}" class="card-img-top w-100 h-100 object-fit-cover" alt="{{ $service->getTranslation('title', app()->getLocale()) }}"
                                      style="transition: transform 0.5s;"
                                      onmouseover="this.style.transform='scale(1.05)';"
                                      onmouseout="this.style.transform='scale(1)';">
@@ -42,7 +42,7 @@
                             {{-- 🛑 1. مكان عرض صورة الأيقونة (الإضافة الجديدة) 🛑 --}}
                             @if ($service->icon)
                                 <div class="icon-img-wrapper mb-3">
-                                    <img src="{{ url('public/storage/' . $service->icon) }}"
+                                    <img src="{{ url('storage/' . $service->icon) }}"
                                          alt="{{ $service->getTranslation('title', app()->getLocale()) }} Icon"
                                          style="width: 50px; height: 50px; object-fit: contain;">
                                 </div>

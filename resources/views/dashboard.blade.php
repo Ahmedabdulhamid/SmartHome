@@ -105,6 +105,54 @@
                                 </div>
                             </div>
 
+                            <div class="mt-5">
+                                <h5 class="fw-bold mb-3 border-bottom pb-2">طلباتي</h5>
+
+                                @if ($orders->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>التاريخ</th>
+                                                    <th>الحالة</th>
+                                                    <th>عدد المنتجات</th>
+                                                    <th>الإجمالي</th>
+                                                    <th>التفاصيل</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($orders as $order)
+                                                    <tr>
+                                                        <td>{{ $order->id }}</td>
+                                                        <td>{{ optional($order->created_at)->format('Y-m-d') }}</td>
+                                                        <td>
+                                                            <span class="badge text-bg-secondary">
+                                                                {{ $order->status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ $order->items->count() }}</td>
+                                                        <td>{{ number_format((float) $order->total_amount, 2) }}</td>
+                                                        <td>
+                                                            <a href="{{ route('orders.show', $order) }}"
+                                                                class="btn btn-sm btn-outline-primary">
+                                                                عرض التفاصيل
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {{ $orders->links() }}
+                                @else
+                                    <div class="alert alert-info mb-0">
+                                        لا توجد طلبات حتى الآن.
+                                    </div>
+                                @endif
+                            </div>
+
                             <div class="mt-5 pt-3 border-top">
                                 <h5 class="fw-bold mb-3">{{ __('web.additional_settings') }}</h5>
 

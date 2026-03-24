@@ -4,8 +4,15 @@
     $navigation = filament()->getNavigation();
 @endphp
 
-<x-filament-panels::layout.base :livewire="$livewire">
+<x-filament-panels::layout.base :livewire="$livewire" class='x-header-filament-smart-home-system' adminId="{{ auth()->guard('admin')->id() }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- The sidebar is after the page content in the markup to fix issues with page content overlapping dropdown content from the sidebar. --}}
+    @if (auth()->guard('admin')->check())
+        <script>
+            window.adminId = '{{ auth()->guard('admin')->id() }}';
+            console.log('Current Admin ID for Echo:', window.adminId);
+        </script>
+    @endif
     <div
         class="fi-layout flex min-h-screen w-full flex-row-reverse overflow-x-clip"
     >

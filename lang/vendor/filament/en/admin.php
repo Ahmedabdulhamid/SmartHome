@@ -367,59 +367,59 @@ return [
     "services_management" => "Services Management",
     // الأسماء العامة للمورد
     'plural' => 'Services',
-'single' => 'Service',
+    'single' => 'Service',
 
-// Main Content Fields
-'content_section_title' => 'Main Content',
-'content_section_description' => 'Enter the service details and description',
-'arabic_tab_title' => 'Arabic',
+    // Main Content Fields
+    'content_section_title' => 'Main Content',
+    'content_section_description' => 'Enter the service details and description',
+    'arabic_tab_title' => 'Arabic',
 
-'short_desc_en' => 'Short Description (English)',
-'short_desc_ar' => 'Short Description (Arabic)',
-'full_desc_en' => 'Full Description (English)',
-'full_desc_ar' => 'Full Description (Arabic)',
+    'short_desc_en' => 'Short Description (English)',
+    'short_desc_ar' => 'Short Description (Arabic)',
+    'full_desc_en' => 'Full Description (English)',
+    'full_desc_ar' => 'Full Description (Arabic)',
 
-// SEO Settings
-'seo_section_title' => 'SEO Settings',
+    // SEO Settings
+    'seo_section_title' => 'SEO Settings',
 
-// Basic Settings
-'settings_section_title' => 'Basic Settings',
+    // Basic Settings
+    'settings_section_title' => 'Basic Settings',
 
-'icon' => 'Service Icon',
+    'icon' => 'Service Icon',
 
-'sort_order' => 'Sort Order',
-'service_image' => 'Service Image',
+    'sort_order' => 'Sort Order',
+    'service_image' => 'Service Image',
 
-// Pricing
-'pricing_section_title' => 'Pricing',
+    // Pricing
+    'pricing_section_title' => 'Pricing',
 
-'base_currency' => 'Base Currency',
+    'base_currency' => 'Base Currency',
 
-// Features and Specifications
-'features_section_title' => 'Features and Specifications',
-'features_section_description' => 'List of features related to the service',
-'features_list' => 'Features List',
-'feature' => 'Feature',
+    // Features and Specifications
+    'features_section_title' => 'Features and Specifications',
+    'features_section_description' => 'List of features related to the service',
+    'features_list' => 'Features List',
+    'feature' => 'Feature',
 
-'additional_cost_currency' => 'Additional Cost Currency',
-'add_new_feature' => 'Add New Feature',
+    'additional_cost_currency' => 'Additional Cost Currency',
+    'add_new_feature' => 'Add New Feature',
 
-// Table Columns
-'image_column_title' => 'Image',
-'title_column' => 'Title',
-'features_column' => 'Features',
-'icon_column' => 'Icon',
-'category_column' => 'Category',
-'base_price_column' => 'Base Price',
-'is_active_column' => 'Status (Active)',
-'sort_order_column' => 'Order',
+    // Table Columns
+    'image_column_title' => 'Image',
+    'title_column' => 'Title',
+    'features_column' => 'Features',
+    'icon_column' => 'Icon',
+    'category_column' => 'Category',
+    'base_price_column' => 'Base Price',
+    'is_active_column' => 'Status (Active)',
+    'sort_order_column' => 'Order',
 
-// Filters
-'filter_by_category' => 'Filter by Category',
+    // Filters
+    'filter_by_category' => 'Filter by Category',
 
 
 
-'features_navigation_label' => 'Manage Features',
+    'features_navigation_label' => 'Manage Features',
     'feature_info_section' => 'Feature Information',
 
     'english_tab_title' => 'English',
@@ -443,11 +443,11 @@ return [
 
 
 
-"features"=>"Features",
+    "features" => "Features",
 
 
 
- // General
+    // General
     'blog' => 'Blog',
 
     'blog_content' => 'Blog Content',
@@ -504,14 +504,14 @@ return [
 
     'edit' => 'Edit',
     'delete' => 'Delete',
-    "blogs_management"=>"Blogs Management",
+    "blogs_management" => "Blogs Management",
 
 
 
     'yes' => 'Yes',
     'no' => 'No',
-     'watch_video' => 'Watch Video',
-     'media_info' => 'Media Information',
+    'watch_video' => 'Watch Video',
+    'media_info' => 'Media Information',
     'excerpt' => 'Excerpt',
 
     'question_ar' => 'Question (Arabic)',
@@ -534,6 +534,65 @@ return [
     'products_description' => 'Total products currently available in the store',
 
     'users_description' => 'Registered users who joined the platform',
+    "goveronrate" => "Governorate",
+    "governorates" => "Governorates",
+    "shipping_zones" => "Shipping Zones Management",
+    "cities" => "Cities",
+    "city" => "City",
+    "shipping_prices" => "Shipping Prices Management",
+    "shipping_price" => "Shipping Price",
+    "shipping_price_info" => "Shipping Price Information",
+    "shipping_zone" => "Shipping Zone",
+    "shipping_zone_info" => "Shipping Zone Information",
+    "shipping_info" => "Shipping Information",
+    "select_city" => "Select City",
+    "shipping_type" => "Shipping Type",
+    "standard" => "Standard",
+    "express" => "Express",
+    "estimated_days" => "Estimated Days",
+    "return_fee" => "Return Fee",
+    "weight_range" => "Weight Range (Kg)",
+    "min_weight" => "Min Weight",
+
+    "max_weight" => "Max Weight",
+    "zip_code" => "Zip Code",
+    "customer_info" => "Customer Information",
+    "basic_customer_details" => "Basic customer details",
+    "f_name" => "First Name",
+    "l_name" => "Last Name",
+    "shipping_information" => "Shipping Information",
+    "shipping_info_region" => "Shipping address and region",
+    "address" => "Address",
+    "payment_details" => 'Payment Details',
+    "order_amount_payment_status" => 'Order amount and payment status',
+    'total_amount' => "Total Amount",
+    "order_status" => "Order Status",
+    "order_items" => "Order Items",
+    "products_included" => "Products included in this order",
+    "unit_price" => "Unit Price",
+    "order" => "Order",
+    "orders" => "Orders",
+    "governorate" => "Governorate",
+    'pending'   => 'Pending',
+    'confirmed' => 'Confirmed',
+    'shipped'   => 'Shipped',
+    'delivered' => 'Delivered',
+    'cancelled' => 'Cancelled',
+    "all_orders" => "All Orders",
+    "today" => "Today",
+    "this_week" => "This Week",
+    "this_month" => "This Month",
+    "sale"=>"Sale",
+    'sales'=>"Sales",
+    "user_name"=>"User name",
+    "user_details"=>"User Details",
+    "blilling_details"=>"Billing Details",
+    "sales_items"=>"Sales Items",
+    "sales_reports"=>"Sales Reports",
+    "reports"=>"Reports"
+
+
+
 
 
 

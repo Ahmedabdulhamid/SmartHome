@@ -20,7 +20,7 @@
                             <div class="card-image-wrapper overflow-hidden" style="height: 250px;">
                                 <a href="{{ route('blogs.show', $blog->slug) }}" class="stretched-link">
                                     @if ($blog->image)
-                                        <img src="{{ url('public/storage/' . $blog->image) }}"
+                                        <img src="{{ url('storage/' . $blog->image) }}"
                                             class="card-img-top w-100 h-100 object-fit-cover"
                                             alt="{{ $blog->getTranslation('title', app()->getLocale()) }}"
                                             style="transition: transform 0.5s ease;"

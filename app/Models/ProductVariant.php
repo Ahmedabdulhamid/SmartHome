@@ -2,25 +2,27 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
-use Spatie\Sluggable\HasSlug;
-use Spatie\Sluggable\SlugOptions;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
+use Spatie\Translatable\HasTranslations;
+
 class ProductVariant extends Model
 {
     use HasTranslations;
-    protected $fillable = [ 'price', 'manage_quantity', 'quantity', 'product_id','name','drawbacks','highlights','reserved_stock'];
+    protected $fillable = ['price', 'manage_quantity', 'quantity', 'product_id', 'name', 'drawbacks', 'highlights', 'reserved_stock'];
     protected $casts = [
         'name' => 'array',
-        'highlights'=>"array",
-        'drawbacks'=>"array"
+        'highlights' => "array",
+        'drawbacks' => "array"
 
     ];
-        public $translatable = ['name','highlights','drawbacks'];
+    public $translatable = ['name', 'highlights', 'drawbacks'];
 
     public function variantImages()
     {
@@ -37,11 +39,12 @@ class ProductVariant extends Model
             'product_variant_attribute_value'
         );
     }
-    public function attributeValuesPivot(){
-    return $this->hasMany(ProductVariantAttributeValue::class, 'product_variant_id');
-}
+    public function attributeValuesPivot()
+    {
+        return $this->hasMany(ProductVariantAttributeValue::class, 'product_variant_id');
+    }
 
-protected function actualPrice(): Attribute
+    protected function actualPrice(): Attribute
     {
         return Attribute::make(
             get: function () {
@@ -71,7 +74,36 @@ protected function actualPrice(): Attribute
         );
     }
     public function stockAdjustments()
-{
-    return $this->morphMany(StockAdjustmentTransaction::class, 'adjustable');
-}
+    {
+        return $this->morphMany(StockAdjustmentTransaction::class, 'adjustable');
+    }
+    protected static function booted()
+    {
+        static::deleting(function ($variant) {
+            // حذف صور المتغير
+            if ($variant->variantImages) {
+                foreach ($variant->variantImages as $vImage) {
+                    $oldPath = $vImage->path;
+                    if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
+            }
+        });
+
+        static::updating(function ($variant) {
+            // حذف صور المتغير القديمة إذا تم تغييرها
+            if ($variant->isDirty('variantImages')) {
+                $original = $variant->getOriginal();
+
+                if (isset($original['variantImages']) && $original['variantImages'] !== $variant->variantImages) {
+                    foreach ($original['variantImages'] as $oldImage) {
+                        if ($oldImage->path && Storage::disk('public')->exists($oldImage->path)) {
+                            Storage::disk('public')->delete($oldImage->path);
+                        }
+                    }
+                }
+            }
+        });
+    }
 }

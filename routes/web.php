@@ -7,11 +7,13 @@ use App\Http\Controllers\ProductController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfqController;
+use App\Http\Controllers\SalesAgentController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\UserProfileController;
 use App\Mail\ContactReplyMail;
 use App\Models\Blog;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -62,7 +64,18 @@ Route::get('categories/{slug}/products', [ProductController::class, 'getProducts
 Route::get('brands/{slug}/products', [ProductController::class, 'getProductsByBrands'])->name('products.brands');
 
 Route::get('rfq', [RfqController::class, 'index'])->name('rfq');
-
+Route::get('sales-agent', [SalesAgentController::class, 'index'])->name('sales.agent.index');
+Route::post('sales-agent/ask', [SalesAgentController::class, 'ask'])->name('sales.agent.ask')->middleware('throttle:ai');
+Route::delete('sales-agent/conversation', [SalesAgentController::class, 'resetConversation'])->name('sales.agent.reset');
+Route::get('/debug-php', function () {
+    return response()->json([
+        'php_version' => PHP_VERSION,
+        'php_binary'  => PHP_BINARY,
+        'loaded_ini'  => php_ini_loaded_file(),
+        'curl_cainfo' => ini_get('curl.cainfo'),
+        'openssl_cafile' => ini_get('openssl.cafile'),
+    ]);
+});
 Route::get('/downloads/{download}', [HomeController::class, 'show'])->name('downloads.show');
 Route::get('/categories', [ProductController::class, 'getAllCategories'])
     ->name('categories');
@@ -92,9 +105,29 @@ Route::get('/pages/{slug}', [PageController::class, 'goToPage'])
     ->name('pages');
 Route::get('product-details/{id}', [ProductController::class, 'show'])->name('product.details');
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    $orders = auth()->guard('web')->user()
+        ->orders()
+        ->with(['currency', 'items'])
+        ->latest()
+        ->paginate(10);
 
+    return view('dashboard', compact('orders'));
+})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/orders/{order}', function (Order $order) {
+    abort_unless($order->user_id === auth()->guard('web')->id(), 403);
+
+    $order->load([
+        'currency',
+        'items.currency',
+        'items.product',
+        'items.variant',
+    ]);
+
+    return view('orders.show', compact('order'));
+})->middleware(['auth', 'verified'])->name('orders.show');
+Route::get('cart', function () {
+    return view('pages.cart');
+})->name('cart');
 Route::get('/quotation/download-signed/{quotation}', function (Quotation $quotation) {
     // ... (منطق التحقق والتوليد) ...
     $filePath = $quotation->storePrivatePdf();
@@ -113,7 +146,9 @@ Route::get('/quotation/download-signed/{quotation}', function (Quotation $quotat
         'Quotation-' . $quotation->id . '.pdf'
     );
 })->name('quotation.signed.download')->middleware(['web', 'signed']);
-
+Route::get('checkout', function () {
+    return view('pages.checkout');
+})->name('checkout');
 Route::get('email-preview', function () {
     // قم بتمرير نص رسالة تجريبي لـ $replyMessage
     $sampleReply = 'مرحباً، هذه رسالة تجريبية لمعاينة تصميم الإيميل الجديد وضمان أن الألوان والمحاذاة العربية تعمل بشكل مثالي.';
@@ -126,6 +161,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/{social}/callback', [SocialiteController::class, 'callback'])->name('auth.social.callback');
 });
 Route::middleware('auth')->group(function () {
+    Route::get('chat-app', function () {
+        return view('pages.chat-app');
+    })->name('chatapp');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -174,7 +213,6 @@ Route::get('sitemap.xml', function () {
     return $sitemap->render();
 })->name('sitemap.xml');
 
-Route::any('whatsapp/webhook', [\App\Http\Controllers\WhatsappWebHookController::class, 'handle'])->name('whatsapp.webhook');
 
 
 require __DIR__ . '/auth.php';

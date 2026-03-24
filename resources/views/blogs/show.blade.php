@@ -30,7 +30,7 @@
 
                         @if ($blog->featured_image)
                             <div class="post-img mb-4 rounded-4 overflow-hidden shadow-sm">
-                                <img src="{{ url('public/storage/' . $blog->featured_image) }}" class="img-fluid w-100 object-fit-cover" alt="{{ $blog->getTranslation('title', app()->getLocale()) }}" style="max-height: 500px;">
+                                <img src="{{ url('storage/' . $blog->featured_image) }}" class="img-fluid w-100 object-fit-cover" alt="{{ $blog->getTranslation('title', app()->getLocale()) }}" style="max-height: 500px;">
                             </div>
                         @elseif($blog->video_url)
                              <div class="post-video mb-4 rounded-4 overflow-hidden shadow-sm ratio ratio-16x9">
@@ -83,7 +83,7 @@
                         <h4 class="fw-bold mb-3 border-bottom pb-2">{{ __('web.about_the_author') }}</h4>
                         @if ($blog->author)
                             <div class="d-flex align-items-center">
-                                {{-- <img src="{{ url('public/storage/' . $blog->author->profile_photo) }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;"> --}}
+                                {{-- <img src="{{ url('storage/' . $blog->author->profile_photo) }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;"> --}}
                                 <div>
                                     <h5 class="mb-0 fw-bold">{{ $blog->author->name ?? __('web.unknown_author') }}</h5>
                                     <small class="text-muted">{{ __('web.admin_role') }}</small>

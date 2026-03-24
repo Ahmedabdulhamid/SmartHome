@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\SalesReports;
 use App\Filament\Resources\DashboardResource\Widgets\AdminChart;
 use App\Filament\Resources\DashboardResource\Widgets\AdminStatsOverview;
 use App\Filament\Resources\DashboardResource\Widgets\ProductChart;
@@ -31,14 +32,18 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use App\Http\Middleware\RedirectLivewire;
 use App\Http\Middleware\SetLocale;
 use App\Models\Setting;
+use Filament\Navigation\NavigationGroup;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Filament\Facades\Filament;
+use Filament\Support\Facades\FilamentAsset;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+
         $settings = Setting::first();
 
         return $panel
@@ -50,8 +55,8 @@ class AdminPanelProvider extends PanelProvider
 
             ->favicon($settings->favicon ? asset('storage/' . $settings->favicon) : null)
             ->colors([
-                // 💡 التعديل: استخدم لون مدمج أو متغير لتمكين تدرجات الوضع الليلي
-                'primary' => Color::Violet, // اختر لونًا يناسب 'rgb(103,76,196)' مثل Violet أو Indigo
+
+                'primary' => Color::Violet,
             ])
 
             // 💡 التعديل: تفعيل خاصية الوضع الليلي
@@ -61,6 +66,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                SalesReports::class
             ])
 
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
@@ -97,9 +103,14 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
 
 
+
             ->authMiddleware([
                 Authenticate::class,
 
-            ]);
+            ])
+            ->darkMode(true)
+
+        ;
     }
+
 }

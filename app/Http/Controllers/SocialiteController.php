@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
-
 class SocialiteController extends Controller
 {
    public function login($social)
@@ -17,19 +16,25 @@ class SocialiteController extends Controller
 
    public function callback($social)
    {
+       $oldSessionId = session()->getId();
        $socialUser = Socialite::driver($social)->user();
 
-       $user=User::updateOrCreate([
-           'social_id' => $socialUser->getId(),
-           'email' => $socialUser->getEmail(),
-       ], [
+       $user=User::updateOrCreate(['email' => $socialUser->getEmail()], [
            'name' => $socialUser->getName(),
            'password'=> bcrypt(uniqid()),
            'email_verified_at' => now(),
            'email' => $socialUser->getEmail(),
            'profile_picture' => $socialUser->getAvatar(),
+          'social_id' => $socialUser->getId(),
        ]);
        Auth::guard('web')->login($user,true);
+       $cart = \App\Models\Cart::where('session_id', $oldSessionId)->first();
+
+    if ($cart) {
+        $cart->user_id = $user->id;
+        $cart->session_id =null; // أصبحت cart مستخدم
+        $cart->save();
+    }
          return redirect()->route('home');
 
        // هنا يمكنك استخدام معلومات المستخدم المسجل عبر وسائل التواصل الاجتماعي
