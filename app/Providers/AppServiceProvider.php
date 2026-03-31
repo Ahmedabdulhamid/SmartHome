@@ -2,19 +2,32 @@
 
 namespace App\Providers;
 
+use App\Models\Blog;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Currency;
+use App\Models\Download;
+use App\Models\Faq;
 use App\Models\Order;
+use App\Models\Page;
+use App\Models\Product;
 use App\Models\QuotationAdditionalCost;
 use App\Models\QuotationItem;
+use App\Models\Service;
+use App\Models\Setting;
+use App\Models\Slider;
+use App\Observers\FrontendCacheObserver;
 use App\Observers\OrderObserver;
 use App\Observers\QuotationAdditionalCostObserver;
 use App\Observers\QuotationItemObserver;
+use Illuminate\Support\Str;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,9 +45,24 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         QuotationItem::observe(QuotationItemObserver::class);
-
         Order::observe(OrderObserver::class);
         QuotationAdditionalCost::observe(QuotationAdditionalCostObserver::class);
+
+        foreach ([
+            Setting::class,
+            Slider::class,
+            Page::class,
+            Category::class,
+            Brand::class,
+            Product::class,
+            Currency::class,
+            Download::class,
+            Service::class,
+            Blog::class,
+            Faq::class,
+        ] as $model) {
+            $model::observe(FrontendCacheObserver::class);
+        }
         $ca = 'C:/php84/cacert.pem'; // أو حطه داخل المشروع واستخدم base_path('cacert.pem')
 
         if (is_file($ca)) {
@@ -48,5 +76,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('ai', function (Request $request) {
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
+
+
+        if (Str::startsWith(request()->path(), 'admin')) {
+        \Debugbar::disable();
+    }
     }
 }

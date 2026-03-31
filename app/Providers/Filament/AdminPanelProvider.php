@@ -35,6 +35,7 @@ use App\Models\Setting;
 use Filament\Navigation\NavigationGroup;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Cache;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Filament\Facades\Filament;
 use Filament\Support\Facades\FilamentAsset;
@@ -43,8 +44,11 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-
-        $settings = Setting::first();
+        $settings = Cache::remember(
+            'filament.admin.panel.settings',
+            now()->addHours(6),
+            fn () => Setting::query()->first()
+        );
 
         return $panel
             ->default()
@@ -53,7 +57,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->authGuard('admin')
 
-            ->favicon($settings->favicon ? asset('storage/' . $settings->favicon) : null)
+            ->favicon($settings?->favicon ? asset('storage/' . $settings->favicon) : null)
             ->colors([
 
                 'primary' => Color::Violet,

@@ -4,225 +4,165 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
-use App\Models\Currency;
 use App\Models\Product;
+use App\Support\FrontendCache;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function show($id)
     {
-        $product = Product::with([
-            'category',
-            'brand',
-            'images',
-            'variants.variantImages',
-            'variants.attributeValues.attribute',
-            'currency',
-            'variants.attributeValuesPivot.attributeValue'
-        ])
-            ->where('slug', $id)
-            ->where('status', 'active') // ✅ إضافة شرط الحالة
-            ->firstOrFail(); // 💡 اقتراح: استخدم firstOrFail لإرجاع 404 إذا لم يكن المنتج موجودًا أو نشطًا
+        $product = FrontendCache::remember('product_detail', [
+            'slug' => $id,
+            'locale' => app()->getLocale(),
+        ], 900, function () use ($id) {
+            return Product::query()
+                ->with([
+                    'category',
+                    'brand',
+                    'images',
+                    'firstImage',
+                    'variants.variantImages',
+                    'variants.attributeValues.attribute',
+                    'currency',
+                    'variants.attributeValuesPivot.attributeValue',
+                ])
+                ->where('slug', $id)
+                ->where('status', 'active')
+                ->firstOrFail();
+        });
 
         return view('products.product_details', ['product' => $product]);
     }
+
     public function getProductsByCategory(string $slug, Request $request)
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::query()->where('slug', $slug)->firstOrFail();
         $currencyCode = session('currency', 'EGP');
 
-        $products = Product::query()
-            ->where('category_id', $category->id)
-
-            // ✅ الشرط 1: يجب أن يكون المنتج نشطًا
-            ->where('status', 'active')
-
-            // ✅ الشرط 2: منطق التوفر الشامل (المنتجات البسيطة والمركبة)
-            ->where(function ($query) {
-
-                // (أ) المنتجات البسيطة (has_variants = false): نطبق منطق المخزون عليها مباشرة
-                $query->where('has_variants', false)
-                    ->where(function ($q) {
-                        // غير مُدار OR (مُدار والكمية > 0)
-                        $q->where('manage_quantity', false)
-                            ->orWhere(function ($q2) {
-                                $q2->where('manage_quantity', true)
-                                    ->where('quantity', '>', 0);
-                            });
-                    })
-
-                    // OR
-
-                    // (ب) المنتجات المركبة (has_variants = true): نتحقق من توفر متغير واحد على الأقل
-                    ->orWhere(function ($q) {
-                        $q->where('has_variants', true)
-                            // يجب أن يكون لديها متغير واحد على الأقل متوفر
-                            ->whereHas('variants', function ($variantQuery) {
-                                // المتغير يكون متاحًا إذا كان: (غير مُدار OR (مُدار والكمية > 0))
-                                $variantQuery->where(function ($v) {
-                                    $v->where('manage_quantity', false)
-                                        ->orWhere(function ($v2) {
-                                            $v2->where('manage_quantity', true)
-                                                ->where('quantity', '>', 0);
-                                        });
-                                });
-                            });
-                    });
-            })
-
-            // الشرط 3: العملة
-            ->whereHas('currency', function ($q) use ($currencyCode) {
-                $q->where('code', $currencyCode);
-            })
-
-            // ✅ Eager Loading (ممتاز، Currency مضافة الآن)
-            ->with([
-                'category',
-                'brand',
-                'images',
-                'currency',
-                'variants.variantImages',
-                'variants.attributeValues.attribute',
-                'variants.attributeValuesPivot.attributeValue'
-            ])
-            ->paginate(10);
+        $products = FrontendCache::remember('products_by_category', [
+            'slug' => $slug,
+            'currency' => $currencyCode,
+            'locale' => app()->getLocale(),
+            'page' => (int) $request->integer('page', 1),
+        ], 900, function () use ($category, $currencyCode) {
+            return $this->productListingQuery()
+                ->where('category_id', $category->id)
+                ->whereHas('currency', function ($q) use ($currencyCode) {
+                    $q->where('code', $currencyCode);
+                })
+                ->paginate(10);
+        });
 
         return view('products.products', ['products' => $products]);
     }
+
     public function getProductsByBrands(string $slug, Request $request)
     {
-        // 1. تصحيح: يجب جلب Brand وليس Category
-        $brand = Brand::where('slug', $slug)->firstOrFail();
+        $brand = Brand::query()->where('slug', $slug)->firstOrFail();
         $currencyCode = session('currency', 'EGP');
 
-        $products = Product::query()
-            // ✅ تصحيح: ربط المنتجات بالـ Brand ID
-            ->where('brand_id', $brand->id)
-
-            // ✅ الشرط 1: يجب أن يكون المنتج نشطًا
-            ->where('status', 'active')
-
-            // ✅ الشرط 2: منطق التوفر الشامل (المنتجات البسيطة والمركبة)
-            ->where(function ($query) {
-
-                // (أ) المنتجات البسيطة (has_variants = false): نطبق منطق المخزون عليها مباشرة
-                $query->where('has_variants', false)
-                    ->where(function ($q) {
-                        // غير مُدار OR (مُدار والكمية > 0)
-                        $q->where('manage_quantity', false)
-                            ->orWhere(function ($q2) {
-                                $q2->where('manage_quantity', true)
-                                    ->where('quantity', '>', 0);
-                            });
-                    })
-
-                    // OR
-
-                    // (ب) المنتجات المركبة (has_variants = true): نتحقق من توفر متغير واحد على الأقل
-                    ->orWhere(function ($q) {
-                        $q->where('has_variants', true)
-                            // يجب أن يكون لديها متغير واحد على الأقل متوفر
-                            ->whereHas('variants', function ($variantQuery) {
-                                // المتغير يكون متاحًا إذا كان: (غير مُدار OR (مُدار والكمية > 0))
-                                $variantQuery->where(function ($v) {
-                                    $v->where('manage_quantity', false)
-                                        ->orWhere(function ($v2) {
-                                            $v2->where('manage_quantity', true)
-                                                ->where('quantity', '>', 0);
-                                        });
-                                });
-                            });
-                    });
-            })
-
-            // الشرط 3: العملة
-            ->whereHas('currency', function ($q) use ($currencyCode) {
-                $q->where('code', $currencyCode);
-            })
-
-            // Eager Loading جيد جداً هنا
-            ->with([
-                'category',
-                'brand',
-                'images',
-                'currency',
-                'variants.variantImages',
-                'variants.attributeValues.attribute',
-                'variants.attributeValuesPivot.attributeValue'
-            ])
-            ->paginate(10);
+        $products = FrontendCache::remember('products_by_brand', [
+            'slug' => $slug,
+            'currency' => $currencyCode,
+            'locale' => app()->getLocale(),
+            'page' => (int) $request->integer('page', 1),
+        ], 900, function () use ($brand, $currencyCode) {
+            return $this->productListingQuery()
+                ->where('brand_id', $brand->id)
+                ->whereHas('currency', function ($q) use ($currencyCode) {
+                    $q->where('code', $currencyCode);
+                })
+                ->paginate(10);
+        });
 
         return view('products.products', ['products' => $products]);
     }
 
-
-    public function getAllProducts()
+    public function getAllProducts(Request $request)
     {
         $currencyCode = session('currency', 'EGP');
 
-        $products = Product::query()
-            // ✅ الشرط 1: يجب أن يكون المنتج نشطًا
-            ->where('status', 'active')
-
-            // ✅ الشرط 2: منطق التوفر الشامل (المنتجات البسيطة والمركبة)
-            ->where(function ($query) {
-
-                // (أ) المنتجات البسيطة (has_variants = false)
-                $query->where('has_variants', false)
-                    ->where(function ($q) {
-                        // غير مُدار OR (مُدار والكمية > 0)
-                        $q->where('manage_quantity', false)
-                            ->orWhere(function ($q2) {
-                                $q2->where('manage_quantity', true)
-                                    ->where('quantity', '>', 0);
-                            });
-                    })
-
-                    // OR
-
-                    // (ب) المنتجات المركبة (has_variants = true)
-                    ->orWhere(function ($q) {
-                        $q->where('has_variants', true)
-                            // يجب أن يكون لديها متغير واحد على الأقل متوفر
-                            ->whereHas('variants', function ($variantQuery) {
-                                // المتغير يكون متاحًا إذا كان: (غير مُدار OR (مُدار والكمية > 0))
-                                $variantQuery->where(function ($v) {
-                                    $v->where('manage_quantity', false)
-                                        ->orWhere(function ($v2) {
-                                            $v2->where('manage_quantity', true)
-                                                ->where('quantity', '>', 0);
-                                        });
-                                });
-                            });
-                    });
-            })
-
-            // ✅ التعديل 1: إضافة شرط العملة
-            ->whereHas('currency', function ($q) use ($currencyCode) {
-                $q->where('code', $currencyCode);
-            })
-
-            // ✅ التعديل 2: إضافة Eager Loading الضروري
-            ->with(['images', 'variants', 'category', 'brand', 'currency'])
-
-            // ✅ التعديل 3: استخدام Pagination بدلاً من get()
-            ->paginate(10);
+        $products = FrontendCache::remember('all_products', [
+            'currency' => $currencyCode,
+            'locale' => app()->getLocale(),
+            'page' => (int) $request->integer('page', 1),
+        ], 900, function () use ($currencyCode) {
+            return $this->productListingQuery()
+                ->whereHas('currency', function ($q) use ($currencyCode) {
+                    $q->where('code', $currencyCode);
+                })
+                ->with(['images', 'firstImage', 'variants', 'category', 'brand', 'currency'])
+                ->paginate(10);
+        });
 
         return view('pages.products', ['products' => $products]);
     }
-    public function getAllCategories()
+
+    public function getAllCategories(Request $request)
     {
-        $categories = Category::whereNull('parent_id')
-            ->has('products')
-            ->paginate(10);
+        $categories = FrontendCache::remember('all_categories', [
+            'locale' => app()->getLocale(),
+            'page' => (int) $request->integer('page', 1),
+        ], 1800, function () {
+            return Category::query()
+                ->whereNull('parent_id')
+                ->has('products')
+                ->paginate(10);
+        });
 
         return view('pages.categories', ['categories' => $categories]);
     }
-    public function getAllBrands()
+
+    public function getAllBrands(Request $request)
     {
-        $brands = Brand::has('products')->paginate(10);
+        $brands = FrontendCache::remember('all_brands', [
+            'locale' => app()->getLocale(),
+            'page' => (int) $request->integer('page', 1),
+        ], 1800, function () {
+            return Brand::query()
+                ->has('products')
+                ->paginate(10);
+        });
 
         return view('pages.brands', ['brands' => $brands]);
+    }
+
+    private function productListingQuery()
+    {
+        return Product::query()
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->where('has_variants', false)
+                    ->where(function ($q) {
+                        $q->where('manage_quantity', false)
+                            ->orWhere(function ($q2) {
+                                $q2->where('manage_quantity', true)
+                                    ->where('quantity', '>', 0);
+                            });
+                    })
+                    ->orWhere(function ($q) {
+                        $q->where('has_variants', true)
+                            ->whereHas('variants', function ($variantQuery) {
+                                $variantQuery->where(function ($v) {
+                                    $v->where('manage_quantity', false)
+                                        ->orWhere(function ($v2) {
+                                            $v2->where('manage_quantity', true)
+                                                ->where('quantity', '>', 0);
+                                        });
+                                });
+                            });
+                    });
+            })
+            ->with([
+                'category',
+                'brand',
+                'images',
+                'firstImage',
+                'currency',
+                'variants.variantImages',
+                'variants.attributeValues.attribute',
+                'variants.attributeValuesPivot.attributeValue',
+            ]);
     }
 }
