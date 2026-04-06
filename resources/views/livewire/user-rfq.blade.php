@@ -25,7 +25,7 @@
         {{-- رقم الهاتف --}}
         <div style="margin-bottom:20px;">
             <label style="display:block; margin-bottom: 5px; font-weight:600; color:#333;">{{ __('web.phone') }}</label>
-            <input type="number" wire:model.defer="phone" placeholder="رقم الهاتف" class="form-control"
+            <input type="number" wire:model.defer="phone" placeholder="{{__('web.phone_number')}}" class="form-control"
                 style="width:100%; padding:10px 15px; border:1px solid #ddd; border-radius:8px; transition: border-color 0.3s, box-shadow 0.3s;"
                 onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.2)'; this.style.outline='none';"
                 onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';">
@@ -107,7 +107,7 @@
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom: 5px; font-weight:600; color:#333;">{{ __('web.expected_price') }}</label>
                     <input type="number" wire:model="items.{{ $index }}.expected_price" class="form-control"
-                        @if (!empty($item['product_id']) || !empty($item['product_variant_id'])) disabled style="background:#f4f4f4; color:#999; width:100%; padding:10px 15px; border:1px solid #ddd; border-radius:8px;" @else style="width:100%; padding:10px 15px; border:1px solid #ddd; border-radius:8px; transition: border-color 0.3s, box-shadow 0.3s;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.2)'; this.style.outline='none';" onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';" @endif>
+                        @if (!empty($item['product_id']) || !empty($item['product_variant_id'])) readonly style="background:#f4f4f4; color:#666; width:100%; padding:10px 15px; border:1px solid #ddd; border-radius:8px;" @else style="width:100%; padding:10px 15px; border:1px solid #ddd; border-radius:8px; transition: border-color 0.3s, box-shadow 0.3s;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.2)'; this.style.outline='none';" onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';" @endif>
 
                     @error("items.$index.expected_price")
                         <span style="color:#e3342f; font-size:12px; margin-top:5px; display:block;">{{ $message }}</span>

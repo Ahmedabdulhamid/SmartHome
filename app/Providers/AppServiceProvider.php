@@ -20,14 +20,13 @@ use App\Observers\FrontendCacheObserver;
 use App\Observers\OrderObserver;
 use App\Observers\QuotationAdditionalCostObserver;
 use App\Observers\QuotationItemObserver;
-use Illuminate\Support\Str;
+use Fruitcake\LaravelDebugbar\Facades\Debugbar;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -77,9 +76,9 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
 
-
-        if (Str::startsWith(request()->path(), 'admin')) {
-        \Debugbar::disable();
-    }
+        // Debugbar is causing memory exhaustion on Livewire / Filament requests.
+        if (class_exists(Debugbar::class)) {
+            Debugbar::disable();
+        }
     }
 }

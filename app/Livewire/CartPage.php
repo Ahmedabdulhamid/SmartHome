@@ -2,235 +2,65 @@
 
 namespace App\Livewire;
 
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
+use App\Http\Requests\Livewire\CartItemMutationRequest;
+use App\Services\Frontend\CartService;
+use App\Support\Livewire\ValidatesWithFormRequest;
 use Livewire\Component;
 
 class CartPage extends Component
 {
+    use ValidatesWithFormRequest;
+
     public $cartItems = [];
     public $subtotal = 0;
     public $total = 0;
 
     protected $listeners = ['cartUpdated' => 'getCartItems'];
 
-    public function mount()
+    public function mount(): void
     {
-        $this->getCartItems();
+        $this->hydrateCart(app(CartService::class)->getCartSnapshot());
     }
 
-    public function getCartItems()
+    public function getCartItems(): void
     {
-        $cart = $this->getCurrentCart();
-
-        if ($cart) {
-            $this->cartItems = $cart->items()
-                ->with(['currency', 'images'])
-                ->get();
-
-            $this->calculateTotals();
-        } else {
-            $this->cartItems = [];
-            $this->subtotal = 0;
-            $this->total = 0;
-        }
+        $this->hydrateCart(app(CartService::class)->getCartSnapshot());
     }
 
-    public function increaseQty($productId, $variantId = null)
+    public function increaseQty($productId, $variantId = null): void
     {
-        $cart = $this->getCurrentCart();
-        if (!$cart) return;
-
-        $existingItem = $this->findCartItemThroughRelationship($cart, $productId, $variantId);
-
-        if ($existingItem) {
-            $newQuantity = $existingItem->pivot->quantity + 1;
-            $unitPrice = $this->getUnitPrice($productId, $variantId);
-            $newPrice = $newQuantity * $unitPrice;
-
-            // ✅ التصحيح: استخدام wherePivot مع updateExistingPivot
-            $query = $cart->items();
-
-            if ($variantId && $variantId !== 'null') {
-                $query->wherePivot('product_variant_id', $variantId);
-            } else {
-                $query->wherePivot('product_variant_id', null);
-            }
-
-            $query->updateExistingPivot($productId, [
-                'quantity' => $newQuantity,
-                'price' => $newPrice
-            ]);
-        } else {
-            $unitPrice = $this->getUnitPrice($productId, $variantId);
-
-            $cart->items()->attach($productId, [
-                'product_variant_id' => $variantId && $variantId !== 'null' ? $variantId : null,
-                'quantity' => 1,
-                'price' => $unitPrice
-            ]);
-        }
-
-        $this->getCartItems();
+        $validated = $this->validateCartMutation($productId, $variantId);
+        $this->hydrateCart(app(CartService::class)->increaseQuantity($validated['product_id'], $validated['product_variant_id'] ?? null));
         $this->dispatch('cartUpdated');
     }
 
-    public function decreaseQty($productId, $variantId = null)
+    public function decreaseQty($productId, $variantId = null): void
     {
-        $cart = $this->getCurrentCart();
-        if (!$cart) return;
-
-        $existingItem = $this->findCartItemThroughRelationship($cart, $productId, $variantId);
-        if (!$existingItem) return;
-
-        $currentQuantity = $existingItem->pivot->quantity;
-
-        if ($currentQuantity > 1) {
-            $newQuantity = $currentQuantity - 1;
-            $unitPrice = $this->getUnitPrice($productId, $variantId);
-            $newPrice = $newQuantity * $unitPrice;
-
-            // ✅ التصحيح: استخدام wherePivot مع updateExistingPivot
-            $query = $cart->items();
-
-            if ($variantId && $variantId !== 'null') {
-                $query->wherePivot('product_variant_id', $variantId);
-            } else {
-                $query->wherePivot('product_variant_id', null);
-            }
-
-            $query->updateExistingPivot($productId, [
-                'quantity' => $newQuantity,
-                'price' => $newPrice
-            ]);
-        } else {
-            $this->removeFromCart($productId, $variantId);
-            return;
-        }
-
-        $this->getCartItems();
+        $validated = $this->validateCartMutation($productId, $variantId);
+        $this->hydrateCart(app(CartService::class)->decreaseQuantity($validated['product_id'], $validated['product_variant_id'] ?? null));
         $this->dispatch('cartUpdated');
     }
 
-    public function removeFromCart($productId, $variantId = null)
+    public function removeFromCart($productId, $variantId = null): void
     {
-        $cart = $this->getCurrentCart();
-        if (!$cart) return;
-
-        if ($variantId && $variantId !== 'null') {
-            $cart->items()->wherePivot('product_variant_id', $variantId)->detach($productId);
-        } else {
-            $cart->items()->wherePivot('product_variant_id', null)->detach($productId);
-        }
-
-        $this->getCartItems();
+        $validated = $this->validateCartMutation($productId, $variantId);
+        $snapshot = app(CartService::class)->removeItem($validated['product_id'], $validated['product_variant_id'] ?? null);
+        $this->hydrateCart($snapshot);
         $this->dispatch('cartUpdated');
-        $cartCount=$cart->items()->count();
-        $this->dispatch('cart_count_updated', count: $cartCount);
+        $this->dispatch('cart_count_updated', count: $snapshot['count']);
     }
 
-    public function updateQuantity($productId, $variantId = null, $quantity)
+    public function updateQuantity($productId, $variantId = null, $quantity = 1): void
     {
-        if ($quantity < 1) {
-            $this->removeFromCart($productId, $variantId);
-            return;
-        }
-
-        $cart = $this->getCurrentCart();
-        if (!$cart) return;
-
-        $existingItem = $this->findCartItemThroughRelationship($cart, $productId, $variantId);
-        if ($existingItem) {
-            $unitPrice = $this->getUnitPrice($productId, $variantId);
-            $newPrice = $quantity * $unitPrice;
-
-            // ✅ التصحيح: استخدام wherePivot مع updateExistingPivot
-            $query = $cart->items();
-
-            if ($variantId && $variantId !== 'null') {
-                $query->wherePivot('product_variant_id', $variantId);
-            } else {
-                $query->wherePivot('product_variant_id', null);
-            }
-
-            $query->updateExistingPivot($productId, [
-                'quantity' => $quantity,
-                'price' => $newPrice
-            ]);
-        }
-
-        $this->getCartItems();
+        $validated = $this->validateCartMutation($productId, $variantId, $quantity);
+        $this->hydrateCart(
+            app(CartService::class)->updateQuantity(
+                $validated['product_id'],
+                $validated['product_variant_id'] ?? null,
+                $validated['quantity'],
+            )
+        );
         $this->dispatch('cartUpdated');
-    }
-
-    private function getCurrentCart()
-    {
-        $userId = auth()->guard('web')->id();
-        $sessionId = session()->getId();
-
-        $cartQuery = Cart::query();
-
-        if ($userId) {
-            $cartQuery->where('user_id', $userId);
-        } else {
-            $cartQuery->where('session_id', $sessionId);
-        }
-
-        $cart = $cartQuery->first();
-
-        if (!$cart) {
-            $cart = Cart::create([
-                'user_id' => $userId,
-                'session_id' => $userId ? null : $sessionId,
-            ]);
-        }
-
-        return $cart;
-    }
-
-    private function findCartItemThroughRelationship($cart, $productId, $variantId = null)
-    {
-        $query = $cart->items()->where('products.id', $productId);
-
-        if ($variantId && $variantId !== 'null') {
-            $query->wherePivot('product_variant_id', $variantId);
-        } else {
-            $query->wherePivot('product_variant_id', null);
-        }
-
-        return $query->first();
-    }
-
-    private function getUnitPrice($productId, $variantId = null)
-    {
-        $product = Product::find($productId);
-        if ($product->has_discount) {
-            if ($variantId && $variantId !== 'null') {
-                $variant = ProductVariant::find($variantId);
-                return $variant ? $variant->price - (($product->discount_percentage * $variant->price) / 100) : 0;
-            } else {
-                return $product ? $product->base_price - (($product->discount_percentage * $product->base_price) / 100) : 0;
-            }
-        } else {
-            if ($variantId && $variantId !== 'null') {
-                $variant = ProductVariant::find($variantId);
-                return $variant ? $variant->price : 0;
-            } else {
-                return $product ? $product->base_price : 0;
-            }
-        }
-    }
-
-    private function calculateTotals()
-    {
-        $this->subtotal = 0;
-        foreach ($this->cartItems as $item) {
-            $this->subtotal += $item->pivot->price;
-        }
-
-        $this->total = $this->subtotal;
     }
 
     public function proceedToCheckout()
@@ -243,19 +73,45 @@ class CartPage extends Component
         return redirect()->route('checkout');
     }
 
-    public function getCartItemsCount()
+    public function getCartItemsCount(): int
     {
-        $count = 0;
-        foreach ($this->cartItems as $item) {
-            $count += $item->pivot->quantity;
-        }
-        return $count;
+        return collect($this->cartItems)->sum(fn ($item) => (int) $item->pivot->quantity);
     }
 
     public function render()
     {
         return view('livewire.cart-page', [
-            'cartItemsCount' => $this->getCartItemsCount()
+            'cartItemsCount' => $this->getCartItemsCount(),
         ]);
+    }
+
+    private function validateCartMutation($productId, $variantId = null, $quantity = null): array
+    {
+        $data = [
+            'product_id' => (int) $productId,
+            'product_variant_id' => $this->normalizeVariantId($variantId),
+        ];
+
+        if ($quantity !== null) {
+            $data['quantity'] = (int) $quantity;
+        }
+
+        return $this->validateWithFormRequest(CartItemMutationRequest::class, $data);
+    }
+
+    private function normalizeVariantId($variantId): ?int
+    {
+        if ($variantId === null || $variantId === '' || $variantId === 'null') {
+            return null;
+        }
+
+        return (int) $variantId;
+    }
+
+    private function hydrateCart(array $snapshot): void
+    {
+        $this->cartItems = $snapshot['items'];
+        $this->subtotal = $snapshot['subtotal'];
+        $this->total = $snapshot['total'];
     }
 }

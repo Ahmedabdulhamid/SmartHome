@@ -57,7 +57,7 @@
                 <div class="order-1 md:order-2">
 
                         {{-- افترضنا أن لديك حقل 'logo_url' في موديل Template --}}
-                        <img src="{{ Storage::url($setting->site_logo) }}" alt="Logo"
+                        <img src="{{ $setting?->site_logo ? Storage::url($setting->site_logo) : '' }}" alt="Logo"
                             class="h-14 object-contain">
 
 
@@ -130,7 +130,7 @@
                     <tbody>
                         @foreach ($quotation->items as $index => $item)
                             @php
-                                $productName = $item->product->getTranslation('name', $locale);
+                                $productName = $item->product?->getTranslation('name', $locale) ?? $translate('not_found');
                                 $shortName =
                                     mb_substr($productName, 0, 50) . (mb_strlen($productName) > 50 ? '...' : '');
                             @endphp
@@ -148,15 +148,15 @@
                                 {{-- المتغيرات --}}
                                 <td class="px-3 py-3">
                                     @if ($item->variant)
-                                        <p class="font-normal">{{ $item->variant->getTranslation('name', $locale) }}
+                                        <p class="font-normal">{{ $item->variant?->getTranslation('name', $locale) ?? $translate('not_found') }}
                                         </p>
                                         @if ($item->variant->attributeValuesPivot->isNotEmpty())
                                             <div class="text-xs text-gray-400 mt-1 space-y-0.5">
                                                 @foreach ($item->variant->attributeValuesPivot as $pivot)
                                                     <span class="block">
-                                                        {{ $pivot->attribute->getTranslation('name', $locale) }}:
+                                                        {{ $pivot->attribute?->getTranslation('name', $locale) ?? $translate('not_found') }}:
                                                         <span
-                                                            class="font-medium">{{ $pivot->attributeValue->value }}</span>
+                                                            class="font-medium">{{ $pivot->attributeValue?->value ?? '-' }}</span>
                                                     </span>
                                                 @endforeach
                                             </div>

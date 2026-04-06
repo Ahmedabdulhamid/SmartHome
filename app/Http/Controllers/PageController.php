@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Page;
-use App\Support\FrontendCache;
+use App\Services\Frontend\PageService;
 
 class PageController extends Controller
 {
+    public function __construct(
+        private readonly PageService $pages,
+    ) {}
+
     public function goToPage($slug)
     {
-        $page = FrontendCache::remember('static_page', [
-            'slug' => $slug,
-            'locale' => app()->getLocale(),
-        ], 1800, function () use ($slug) {
-            return Page::query()->whereSlug($slug)->firstOrFail();
-        });
+        $page = $this->pages->getBySlug($slug, app()->getLocale());
 
         return view('pages.pages', ['page' => $page]);
     }

@@ -49,7 +49,7 @@
                                         @if ($blog->category)
                                             <span class="badge bg-primary-subtle text-primary fw-normal">
                                                 <i class="bi bi-tag me-1"></i>
-                                                {{ $blog->category->getTranslation('name', app()->getLocale()) }}
+                                                {{ $blog->category?->getTranslation('name', app()->getLocale()) ?? __('web.not_available') }}
                                             </span>
                                         @endif
                                     </div>

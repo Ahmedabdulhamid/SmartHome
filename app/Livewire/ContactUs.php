@@ -2,50 +2,37 @@
 
 namespace App\Livewire;
 
-use App\Models\Admin;
-use App\Notifications\ContactUsEmail;
-use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Livewire\ContactUsRequest;
+use App\Services\Frontend\ContactService;
+use App\Support\Livewire\ValidatesWithFormRequest;
 use Livewire\Component;
 
 class ContactUs extends Component
 {
-    public $name, $email, $subject, $message, $status;
-    public function rules()
+    use ValidatesWithFormRequest;
+
+    public $name;
+    public $email;
+    public $subject;
+    public $message;
+    public $status;
+     protected function rules()
     {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
+         return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string'],
         ];
     }
-    public function submit()
+    public function submit(): void
     {
-        $this->validate();
-        $contact = \App\Models\Contact::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'subject' => $this->subject,
-            'message' => $this->message,
-            'status' => 'new',
-        ]);
-        $admins = Admin::all();
-        foreach ($admins as $admin) {
-            if ($admin->hasRole('Super Admin')) {
-                $admin->notify(new ContactUsEmail($contact));
+        $validated = $this->validate();
 
-                Notification::make()
-                    ->title('You Have a new message from' . ' ' . $contact->name)
-                    ->success()
-                    ->sendToDatabase($admin);
-            }
-        }
-
+        app(ContactService::class)->submit($validated);
 
         $this->dispatch('success', __('web.contact_success'));
-
-        $this->reset(['name', 'email', 'subject', 'message']);
+        $this->reset([]);
     }
 
     public function render()

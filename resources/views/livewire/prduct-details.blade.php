@@ -73,9 +73,9 @@
             {{-- العلامة التجارية والفئة --}}
             <p class="text-muted mb-4 small border-bottom pb-2">
                 {{ __('web.category') }}: <span
-                    class="text-navy fw-medium">{{ $product->category->getTranslation('name', app()->getLocale()) ?? '-' }}</span>
+                    class="text-navy fw-medium">{{ $product->category?->getTranslation('name', app()->getLocale()) ?? '-' }}</span>
                 | {{ __('web.brand') }}: <span
-                    class="text-navy fw-medium">{{ $product->brand->getTranslation('name', app()->getLocale()) ?? '-' }}</span>
+                    class="text-navy fw-medium">{{ $product->brand?->getTranslation('name', app()->getLocale()) ?? '-' }}</span>
             </p>
 
             {{-- السعر: استخدام اللون الأحمر القوي (Deep Red) --}}
@@ -148,7 +148,7 @@
 
                             $attributes = $variant->attributeValues->map(
                                 fn($val) => [
-                                    'name' => $val->attribute->getTranslation('name', app()->getLocale()),
+                                    'name' => $val->attribute?->getTranslation('name', app()->getLocale()) ?? '-',
                                     'value' => $val->value,
                                 ],
                             );
@@ -452,10 +452,10 @@
                                 {{-- الميتا --}}
                                 <div class="post-meta small text-muted mb-2">
                                     <span class="me-2 text-info">
-                                        {{ $product->category->getTranslation('name', app()->getLocale()) ?? '' }}
+                                        {{ $product->category?->getTranslation('name', app()->getLocale()) ?? '' }}
                                     </span> |
                                     <span class="text-dark">
-                                        {{ $product->brand->getTranslation('name', app()->getLocale()) ?? '' }}
+                                        {{ $product->brand?->getTranslation('name', app()->getLocale()) ?? '' }}
                                     </span>
                                 </div>
 

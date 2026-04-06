@@ -2,55 +2,40 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\Http;
+use App\Http\Requests\Livewire\ChatPromptRequest;
+use App\Services\Frontend\ChatWebhookService;
+use App\Support\Livewire\ValidatesWithFormRequest;
 use Livewire\Component;
 
 class ChatApp extends Component
 {
+    use ValidatesWithFormRequest;
+
     public $prompt;
     public $history = [];
-    public function submit()
+
+    public function submit(): void
     {
-        $this->validate([
-            'prompt' => ['required']
+        $validated = $this->validateWithFormRequest(ChatPromptRequest::class, [
+            'prompt' => $this->prompt,
         ]);
 
-        $questionValue = ['q' => $this->prompt];
-        $text = "";
-        $webhookUrl = 'http://localhost:5678/webhook-test/chat';
+        $questionValue = ['q' => $validated['prompt']];
 
         try {
-            $response = Http::timeout(120)->withHeaders([
-                'Content-Type' => 'application/json'
-            ])->post($webhookUrl, [
-                'prompt' => $this->prompt,
-                'user_id' => auth()->guard('web')->user()->id // مطابق لـ user_id في n8n
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-
-                // أضفنا التحقق من 'answer' لأنه هو الظاهر في الصورة الأخيرة
-                if (isset($data['answer'])) {
-                    $text = $data['answer'];
-                } elseif (isset($data['output'])) {
-                    $text = $data['output'];
-                } elseif (isset($data['response'])) {
-                    $text = $data['response'];
-                } else {
-                    $text = "الرد وصل بشكل غير متوقع: " . json_encode($data);
-                }
-            } else {
-                $text = "فشل الاتصال بـ n8n. الحالة: " . $response->status();
-            }
-        } catch (\Exception $e) {
-            $text = "حدث خطأ أثناء الإرسال: " . $e->getMessage();
+            $questionValue['a'] = app(ChatWebhookService::class)->ask(
+                $validated['prompt'],
+                (int) auth()->guard('web')->user()->id,
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+            $questionValue['a'] = 'An error occurred while sending: ' . $exception->getMessage();
         }
 
-        $questionValue['a'] = $text;
         $this->history[] = $questionValue;
         $this->reset('prompt');
     }
+
     public function render()
     {
         return view('livewire.chat-app');

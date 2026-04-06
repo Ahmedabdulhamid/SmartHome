@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\App;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Unique;
 
 class CategoryResource extends Resource
 {
@@ -22,12 +22,10 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
-
+ protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Form $form): Form
     {
-
-
         return $form
             ->schema([
                 Forms\Components\Tabs::make('Translations')
@@ -38,7 +36,24 @@ class CategoryResource extends Resource
                                     ->label('Name (English)')
                                     ->required()
                                     ->maxLength(255)
-                                    ->rule('unique:categories,name->en')
+                                    ->unique(
+                                        table: 'categories',
+                                        column: 'name->en', // التحقق على مسار JSON
+                                        ignoreRecord: true,
+                                        modifyRuleUsing: function (Forms\Components\TextInput $component, Unique $rule) {
+                                            $typeValue = $component->getContainer()->getRawState()['type'] ?? null;
+
+                                            if (!$typeValue && $component->getRecord()) {
+                                                $typeValue = $component->getRecord()->type;
+                                            }
+
+                                            if ($typeValue) {
+                                                // إضافة شرط النوع (type) لقاعدة الفرادة (Unique Rule)
+                                                return $rule->where('type', $typeValue);
+                                            }
+                                            return $rule;
+                                        }
+                                    ),
                             ]),
                         Forms\Components\Tabs\Tab::make('العربية')
                             ->schema([
@@ -46,7 +61,24 @@ class CategoryResource extends Resource
                                     ->label('الاسم (بالعربية)')
                                     ->required()
                                     ->maxLength(255)
-                                    ->rule('unique:categories,name->ar')
+                                    ->unique(
+                                        table: 'categories',
+                                        column: 'name->ar', // التحقق على مسار JSON
+                                        ignoreRecord: true,
+                                        modifyRuleUsing: function (Forms\Components\TextInput $component, Unique $rule) {
+                                            $typeValue = $component->getContainer()->getRawState()['type'] ?? null;
+
+                                            if (!$typeValue && $component->getRecord()) {
+                                                $typeValue = $component->getRecord()->type;
+                                            }
+
+                                            if ($typeValue) {
+                                                // إضافة شرط النوع (type) لقاعدة الفرادة (Unique Rule)
+                                                return $rule->where('type', $typeValue);
+                                            }
+                                            return $rule;
+                                        }
+                                    ),
                             ]),
                     ])
                     ->columnSpanFull(),
@@ -55,7 +87,7 @@ class CategoryResource extends Resource
                     ->label(__('filament::admin.type'))
                     ->options([
                         'products' => __('filament::admin.products'),
-                        "blogs" => __('filament::admin.products'),
+                        "blogs" => __('filament::admin.blogs'),
                         "services" => __('filament::admin.services')
                     ])
                     ->required()
@@ -101,7 +133,7 @@ class CategoryResource extends Resource
                     ->label(__('filament::admin.type'))
                     ->options([
                         'products' => __('filament::admin.products'),
-                        "blogs" => __('filament::admin.products'),
+                        "blogs" => __('filament::admin.blogs'),
                         "services" => __('filament::admin.services')
                     ])
             ])
@@ -136,12 +168,12 @@ class CategoryResource extends Resource
     }
     public static function getPluralLabel(): ?string
     {
-        return __('filament::admin.categories'); // المسؤولين
+        return __('filament::admin.categories');
     }
 
     public static function getLabel(): ?string
     {
-        return __('filament::admin.categories'); // مسؤول
+        return __('filament::admin.categories');
     }
     public static function getNavigationBadge(): ?string
     {
@@ -157,7 +189,6 @@ class CategoryResource extends Resource
     }
     public static function getEloquentQuery(): Builder
     {
-        // تحميل علاقة 'parent' مسبقًا لمنع N+1 عند عرض العمود الجديد
         return parent::getEloquentQuery()->with(['parent']);
     }
 }

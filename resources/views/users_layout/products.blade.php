@@ -34,10 +34,10 @@
                         {{-- الميتا --}}
                         <div class="post-meta small text-muted">
                             <span class="me-2">
-                                {{ $product->category->getTranslation('name', app()->getLocale()) ?? '' }}
+                                {{ $product?->category?->getTranslation('name', app()->getLocale()) ?? '' }}
                             </span> |
                             <span>
-                                {{ $product->brand->getTranslation('name', app()->getLocale()) ?? '' }}
+                                {{ $product?->brand?->getTranslation('name', app()->getLocale()) ?? '' }}
                             </span>
                         </div>
 

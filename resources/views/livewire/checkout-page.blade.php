@@ -492,7 +492,7 @@
                                         @if (isset($cities))
                                             @foreach ($cities as $city)
                                                 <option value="{{ $city->id }}">
-                                                    {{ $city->getTranslation('name', app()->getLocale()) }}</option>
+                                                    {{ $city?->getTranslation('name', app()->getLocale()) ?? '-' }}</option>
                                             @endforeach
                                         @endif
                                     </select>
@@ -515,7 +515,7 @@
                                         @if (isset($governorates))
                                             @foreach ($governorates as $governorate)
                                                 <option value="{{ $governorate->id }}">
-                                                    {{ $governorate->getTranslation('name', app()->getLocale()) }}</option>
+                                                    {{ $governorate?->getTranslation('name', app()->getLocale()) ?? '-' }}</option>
                                             @endforeach
                                         @endif
                                     </select>
@@ -677,38 +677,6 @@
                     this.style.backgroundColor = 'rgba(74, 111, 255, 0.05)';
                 });
             });
-
-            // Form validation placeholder
-            const placeOrderBtn = document.querySelector('.btn-primary');
-            if (placeOrderBtn) {
-                placeOrderBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    // Basic form validation
-                    const firstName = document.querySelector('input[placeholder="John"]');
-                    const email = document.querySelector('input[placeholder="example@mail.com"]');
-                    const phone = document.querySelector('input[placeholder="+20 123 456 7890"]');
-                    const address = document.querySelector(
-                        'input[placeholder="Street, Building, Apartment"]');
-
-                    if (!firstName.value || !email.value || !phone.value || !address.value) {
-                        alert('Please fill in all required fields');
-                        return;
-                    }
-
-                    // Show loading state
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing...';
-                    this.disabled = true;
-
-                    // Simulate API call
-                    setTimeout(() => {
-                        alert('Order placed successfully!');
-                        this.innerHTML = originalText;
-                        this.disabled = false;
-                    }, 1500);
-                });
-            }
 
             // Governorate and city interaction
             const governorateSelect = document.getElementById('governorate');

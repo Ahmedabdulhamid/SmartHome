@@ -94,8 +94,7 @@ class RfqResource extends Resource
                                 ->label(__('filament::admin.expected_price'))
                                 ->visible(fn($record) => $record->expected_price)
                                 ->formatStateUsing(function ($state, $record) {
-
-                                    return number_format($state, 2) . ' ' . $record->currency->code;
+                                    return number_format($state, 2) . ' ' . ($record->currency?->code ?? '');
                                 }),
 
                             TextEntry::make('description')
@@ -116,20 +115,24 @@ class RfqResource extends Resource
                                         ->label(__('filament::admin.product'))
                                         ->getStateUsing(
                                             fn($record) =>
-                                            $record->product->getTranslation('name', app()->getLocale())
+                                            $record->product?->getTranslation('name', app()->getLocale()) ?? '-'
                                         ),
 
                                     TextEntry::make('expected_price')
                                         ->label(__('filament::admin.price'))
                                         ->formatStateUsing(function ($state, $record) {
-                                            return number_format($state, 2) . ' ' . $record->rfq->currency->code;
+                                            if ($state === null) {
+                                                return '-';
+                                            }
+
+                                            return number_format($state, 2) . ' ' . ($record->rfq?->currency?->code ?? '');
                                         }),
 
                                     TextEntry::make('variant_name')
                                         ->label(__('filament::admin.variant'))
                                         ->getStateUsing(
                                             fn($record) =>
-                                            $record->variant->getTranslation('name', app()->getLocale())
+                                            $record->variant?->getTranslation('name', app()->getLocale()) ?? '-'
                                         )
                                         ->visible(fn($record) => $record->variant),
                                 ]),

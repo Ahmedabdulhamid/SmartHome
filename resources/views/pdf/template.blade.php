@@ -5,7 +5,7 @@
     //$logoPath = $quotation->template->logo;
     //$absolutePath = storage_path('app/public/' . $logoPath);
     $setting = Setting::first();
-    $logoPath = $setting->site_logo;
+    $logoPath = $setting?->site_logo;
     $absolutePath = storage_path('app/public/' . $logoPath);
 @endphp
 <!DOCTYPE html>
@@ -152,14 +152,14 @@
             </tr>
             <tr class="item">
                 <td>
-                    {{ $sale->user?->name ?? $sale->order->f_name . ' ' . $sale->order->l_name }}<br>
-                    {{ $sale->user?->email ?? $sale->order->email }}
+                    {{ $sale->user?->name ?? (($sale->order?->f_name ?? '') . ' ' . ($sale->order?->l_name ?? '')) }}<br>
+                    {{ $sale->user?->email ?? ($sale->order?->email ?? '') }}
                 </td>
                 <td>
-                    {{ $sale->order->phone }}<br>
-                    {{ $sale->order->address }}<br>
-                    {{ $sale->order->city?->getTranslation('name', app()->getLocale()) ?? '' }},
-                    {{ $sale->order->governorate?->getTranslation('name', app()->getLocale()) ?? '' }}
+                    {{ $sale->order?->phone ?? '' }}<br>
+                    {{ $sale->order?->address ?? '' }}<br>
+                    {{ $sale->order?->city?->getTranslation('name', app()->getLocale()) ?? '' }},
+                    {{ $sale->order?->governorate?->getTranslation('name', app()->getLocale()) ?? '' }}
                 </td>
             </tr>
         </table>
@@ -181,10 +181,10 @@
                     $variant = ProductVariant::find($item?->product_variant_id);
                 @endphp
                 <tr class="item">
-                    <td>{{ $product->getTranslation('name', app()->getLocale()) }}</td>
+                    <td>{{ $product?->getTranslation('name', app()->getLocale()) ?? '-' }}</td>
                     @if (isset($variant))
                         <td>
-                            {{ $variant->getTranslation('name', app()->getLocale()) }}
+                            {{ $variant?->getTranslation('name', app()->getLocale()) ?? '-' }}
 
                         </td>
                     @endif

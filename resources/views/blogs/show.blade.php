@@ -48,7 +48,7 @@
                             @if ($blog->category)
                                 <span class="me-4"><i class="bi bi-folder me-1"></i>
                                     <a href="#" class="text-primary text-decoration-none">
-                                        {{ $blog->category->getTranslation('name', app()->getLocale()) }}
+                                        {{ $blog->category?->getTranslation('name', app()->getLocale()) ?? __('web.not_available') }}
                                     </a>
                                 </span>
                             @endif

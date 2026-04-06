@@ -56,10 +56,11 @@
                             {{-- Unit Price --}}
                             <p class="text-dark mb-1">
                                 @php
-                                    $unitPrice = $this->getUnitPrice($product->id, $variantId);
+                                    $quantity = max((int) $item->pivot->quantity, 1);
+                                    $unitPrice = (float) $item->pivot->price / $quantity;
                                 @endphp
                                 {{ number_format($unitPrice, 2) }}
-                                {{ $product->currency->code }} each
+                                {{ $product->currency?->code ?? 'EGP' }} each
                             </p>
 
                             {{-- Delete Button --}}
@@ -123,7 +124,7 @@
                         <div class="col-md-2 text-end mt-3 mt-md-0">
                             <h5 class="text-dark fw-bold">
                                 <span wire:loading.remove wire:target="decreaseQty,increaseQty,updateQuantity">
-                                    {{ number_format($item->pivot->price, 2) }} {{ $product->currency->code }}
+                                    {{ number_format($item->pivot->price, 2) }} {{ $product->currency?->code ?? 'EGP' }}
                                 </span>
                                 <span wire:loading wire:target="decreaseQty,increaseQty,updateQuantity" class="text-muted">
                                     <i class="bi bi-arrow-repeat spinner"></i>
@@ -159,7 +160,7 @@
                 <div class="d-flex justify-content-between mb-2">
                     <span>المجموع الفرعي</span>
                     <span class="fw-semibold">
-                        {{ number_format($subtotal, 2) }} {{ count($cartItems) > 0 ? $cartItems->first()->currency->code : 'EGP' }}
+                        {{ number_format($subtotal, 2) }} {{ count($cartItems) > 0 ? ($cartItems->first()->currency?->code ?? 'EGP') : 'EGP' }}
                     </span>
                 </div>
 
@@ -175,7 +176,7 @@
                 <div class="d-flex justify-content-between mb-2">
                     <span>الضريبة</span>
                     <span class="fw-semibold">
-                        0.00 {{ count($cartItems) > 0 ? $cartItems->first()->currency->code : 'EGP' }}
+                        0.00 {{ count($cartItems) > 0 ? ($cartItems->first()->currency?->code ?? 'EGP') : 'EGP' }}
                     </span>
                 </div>
 
@@ -185,7 +186,7 @@
                 <div class="d-flex justify-content-between mb-3">
                     <h5 class="fw-bold mb-0">المجموع الكلي</h5>
                     <h5 class="fw-bold mb-0">
-                        {{ number_format($total, 2) }} {{ count($cartItems) > 0 ? $cartItems->first()->currency->code : 'EGP' }}
+                        {{ number_format($total, 2) }} {{ count($cartItems) > 0 ? ($cartItems->first()->currency?->code ?? 'EGP') : 'EGP' }}
                     </h5>
                 </div>
 

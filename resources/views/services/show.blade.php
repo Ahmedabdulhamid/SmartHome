@@ -104,7 +104,7 @@
                                         <i class="bi bi-tag-fill me-2 text-info"></i>
                                         <strong>{{ __('web.category') }}:</strong>
                                         <a href="{{--  --}}" class="text-info-emphasis fw-bold">
-                                            {{ $service->category->getTranslation('name', app()->getLocale()) ?? __('web.uncategorized') }}
+                                            {{ $service->category?->getTranslation('name', app()->getLocale()) ?? __('web.uncategorized') }}
                                         </a>
                                     </p>
 

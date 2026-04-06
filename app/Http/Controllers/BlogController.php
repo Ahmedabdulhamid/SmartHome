@@ -2,38 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Blog;
-use App\Support\FrontendCache;
+use App\Services\Frontend\BlogService;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
+    public function __construct(
+        private readonly BlogService $blogs,
+    ) {}
+
     public function getAllBlogs(Request $request)
     {
-        $blogs = FrontendCache::remember('all_blogs', [
-            'locale' => app()->getLocale(),
-            'page' => (int) $request->integer('page', 1),
-        ], 900, function () {
-            return Blog::query()
-                ->with(['category', 'author'])
-                ->latest()
-                ->paginate(12);
-        });
+        $blogs = $this->blogs->getAllBlogs(
+            app()->getLocale(),
+            (int) $request->integer('page', 1),
+        );
 
         return view('blogs.index', compact('blogs'));
     }
 
     public function getBlogBySlug($slug)
     {
-        $blog = FrontendCache::remember('blog_detail', [
-            'slug' => $slug,
-            'locale' => app()->getLocale(),
-        ], 300, function () use ($slug) {
-            return Blog::query()
-                ->with(['category', 'author'])
-                ->where('slug', $slug)
-                ->firstOrFail();
-        });
+        $blog = $this->blogs->getBlogBySlug($slug, app()->getLocale());
 
         $blog->incrementViews();
 
