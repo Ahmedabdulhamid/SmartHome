@@ -1,2 +1,0 @@
-export PATH="/c/php84:$PATH"
-/c/php84/php.exe artisan serve --host=127.0.0.1 --port=8001
